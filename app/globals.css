@@ -43,6 +43,13 @@ body {
   color: var(--selection-text);
 }
 
+.admin-selection::selection,
+.admin-selection *::selection {
+  background: #ffffff;
+  color: #0f1115;
+  text-shadow: none;
+}
+
 img,
 video {
   max-width: 100%;

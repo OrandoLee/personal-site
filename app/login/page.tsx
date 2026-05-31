@@ -10,7 +10,7 @@ export default function LoginPage() {
   requireGuestLoginPage();
 
   return (
-    <main className="min-h-screen bg-[#0f1115] px-4 py-10 text-zinc-100 sm:px-6">
+    <main className="admin-selection min-h-screen bg-[#0f1115] px-4 py-10 text-zinc-100 sm:px-6">
       <section className="mx-auto grid min-h-[calc(100vh-5rem)] max-w-6xl items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
         <div>
           <p className="text-xs uppercase tracking-[0.36em] text-zinc-500">

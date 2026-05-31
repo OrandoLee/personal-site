@@ -31,7 +31,7 @@ export function AdminShell({ children, username }: AdminShellProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f1115] text-zinc-100">
+    <div className="admin-selection min-h-screen bg-[#0f1115] text-zinc-100">
       <aside className="fixed inset-y-0 left-0 hidden w-72 border-r border-white/10 bg-[#11141a] px-5 py-6 lg:block">
         <Link href="/dashboard" className="block">
           <p className="text-xs uppercase tracking-[0.32em] text-zinc-500">

@@ -64,20 +64,27 @@ export function GalleryCard({
             />
           </button>
         ) : (
-          <video
-            ref={videoRef}
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
-            src={item.src}
-            poster={item.thumbnail}
-            muted
-            loop
-            playsInline
-            autoPlay={priority}
-            preload={priority ? "auto" : "metadata"}
-            onMouseEnter={(event) => {
-              void event.currentTarget.play().catch(() => undefined);
-            }}
-          />
+          <button
+            type="button"
+            onClick={() => onPreview(item)}
+            className="h-full w-full cursor-pointer"
+            aria-label={`${uiText.gallery.previewAriaPrefix}${item.title}`}
+          >
+            <video
+              ref={videoRef}
+              className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+              src={item.src}
+              poster={item.thumbnail}
+              muted
+              loop
+              playsInline
+              autoPlay={priority}
+              preload={priority ? "auto" : "metadata"}
+              onMouseEnter={(event) => {
+                void event.currentTarget.play().catch(() => undefined);
+              }}
+            />
+          </button>
         )}
       </div>
 

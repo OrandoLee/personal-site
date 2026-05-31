@@ -42,11 +42,7 @@ export function SplashScreen() {
           z-index: 9999;
           display: grid;
           place-items: center;
-          background:
-            linear-gradient(90deg, rgb(var(--archive-ink) / 0.045) 1px, transparent 1px),
-            linear-gradient(180deg, rgb(var(--archive-ink) / 0.035) 1px, transparent 1px),
-            rgb(var(--background));
-          background-size: 80px 80px, 80px 80px, auto;
+          background: rgb(var(--background));
           pointer-events: none;
           animation: splash-shell 1800ms cubic-bezier(0.22, 1, 0.36, 1) both;
         }

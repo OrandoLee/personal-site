@@ -58,11 +58,7 @@ html {
 body {
   min-height: 100vh;
   margin: 0;
-  background:
-    linear-gradient(90deg, rgb(var(--archive-ink) / 0.045) 1px, transparent 1px),
-    linear-gradient(180deg, rgb(var(--archive-ink) / 0.035) 1px, transparent 1px),
-    rgb(var(--background));
-  background-size: 80px 80px, 80px 80px, auto;
+  background: rgb(var(--background));
   color: rgb(var(--foreground));
   font-family:
     Arial,
@@ -106,9 +102,7 @@ video {
 
 .archive-shell {
   min-height: 100vh;
-  background:
-    radial-gradient(circle at 8% 4%, rgb(var(--archive-clay) / 0.13), transparent 28%),
-    linear-gradient(180deg, rgb(var(--archive-paper2) / 0.72), rgb(var(--archive-paper) / 0));
+  background: rgb(var(--archive-paper));
 }
 
 .wordmark {

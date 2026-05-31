@@ -45,8 +45,19 @@ body {
 
 .admin-selection::selection,
 .admin-selection *::selection {
-  background: #ffffff;
-  color: #0f1115;
+  background-color: #ffffff !important;
+  color: #05070a !important;
+  text-shadow: none;
+}
+
+.admin-selection input::selection,
+.admin-selection textarea::selection,
+.admin-selection [contenteditable]::selection,
+.admin-selection .article-body::selection,
+.admin-selection .article-body *::selection {
+  background-color: #ffffff !important;
+  color: #05070a !important;
+  -webkit-text-fill-color: #05070a;
   text-shadow: none;
 }
 

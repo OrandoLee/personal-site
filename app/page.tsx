@@ -2,30 +2,30 @@ import Link from "next/link";
 import { AnimatedDate } from "@/components/AnimatedDate";
 import { UpdateCard } from "@/components/UpdateCard";
 import { uiText } from "@/content/uiText";
-import type { UpdateType } from "@/data/updates";
 import { updateTypeMeta } from "@/data/updates";
 import { getPublicUpdates } from "@/lib/public-content";
 
-const updateOrder: UpdateType[] = ["article", "image", "video", "project", "note"];
-
 export const dynamic = "force-dynamic";
+
+function todayInput() {
+  const parts = new Intl.DateTimeFormat("zh-CN", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(new Date());
+  const year = parts.find((part) => part.type === "year")?.value ?? "1970";
+  const month = parts.find((part) => part.type === "month")?.value ?? "01";
+  const day = parts.find((part) => part.type === "day")?.value ?? "01";
+
+  return `${year}-${month}-${day}`;
+}
 
 export default async function HomePage() {
   const sortedUpdates = await getPublicUpdates();
-  const latestDate = sortedUpdates[0]?.date ?? new Date().toISOString().slice(0, 10);
-  const todayUpdates = sortedUpdates.filter((update) => update.date === latestDate);
-  const highlights = updateOrder.reduce<Array<(typeof sortedUpdates)[number]>>(
-    (items, type) => {
-      const update = sortedUpdates.find((item) => item.type === type);
-
-      if (update) {
-        items.push(update);
-      }
-
-      return items;
-    },
-    []
-  );
+  const today = todayInput();
+  const todayUpdates = sortedUpdates.filter((update) => update.date === today);
+  const latestUpdates = sortedUpdates.slice(0, 4);
 
   return (
     <main>
@@ -60,7 +60,7 @@ export default async function HomePage() {
           <div className="rounded-3xl bg-archive-paper2/75 p-7">
             <p className="mb-4 text-sm text-archive-muted">{uiText.home.todayUpdates}</p>
             <h2 className="text-4xl font-semibold text-archive-ink">
-              <AnimatedDate date={latestDate} />
+              <AnimatedDate date={today} />
             </h2>
           </div>
         </div>
@@ -77,9 +77,15 @@ export default async function HomePage() {
         </div>
 
         <div className="grid gap-5 lg:grid-cols-3">
-          {todayUpdates.map((update) => (
-            <UpdateCard key={update.id} update={update} />
-          ))}
+          {todayUpdates.length > 0 ? (
+            todayUpdates.map((update) => (
+              <UpdateCard key={update.id} update={update} />
+            ))
+          ) : (
+            <div className="rounded-3xl border border-archive-line bg-archive-paper2 p-7 text-archive-muted lg:col-span-3">
+              今日还未有新的更新内容
+            </div>
+          )}
         </div>
       </section>
 
@@ -91,8 +97,8 @@ export default async function HomePage() {
           </h2>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-5">
-          {highlights.map((update) => {
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {latestUpdates.map((update) => {
             const meta = updateTypeMeta[update.type];
 
             return (
@@ -115,6 +121,11 @@ export default async function HomePage() {
               </Link>
             );
           })}
+          {latestUpdates.length === 0 ? (
+            <div className="rounded-3xl border border-archive-line bg-archive-paper2 p-5 text-sm leading-7 text-archive-muted md:col-span-2 lg:col-span-4">
+              暂无最新内容。
+            </div>
+          ) : null}
         </div>
       </section>
     </main>

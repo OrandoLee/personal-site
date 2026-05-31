@@ -1,10 +1,9 @@
 import Link from "next/link";
 import { uiText } from "@/content/uiText";
-import {
-  serializeDailyUpdate,
-  serializeOraskMessage
-} from "@/lib/content-serializers";
+import { updateTypeMeta } from "@/data/updates";
+import { serializeOraskMessage } from "@/lib/content-serializers";
 import { prisma } from "@/lib/db";
+import { getPublicUpdates } from "@/lib/public-content";
 
 export const dynamic = "force-dynamic";
 
@@ -13,20 +12,15 @@ export default async function DashboardPage() {
     publishedArticles,
     draftArticles,
     galleryCount,
-    updatesCount,
     unreadOraskCount,
-    recentUpdates,
+    autoUpdates,
     recentMessages
   ] = await Promise.all([
     prisma.article.count({ where: { published: true } }),
     prisma.article.count({ where: { published: false } }),
     prisma.galleryItem.count(),
-    prisma.dailyUpdate.count(),
     prisma.oraskMessage.count({ where: { read: false } }),
-    prisma.dailyUpdate.findMany({
-      orderBy: { updatedAt: "desc" },
-      take: 5
-    }),
+    getPublicUpdates(),
     prisma.oraskMessage.findMany({
       orderBy: { createdAt: "desc" },
       take: 5
@@ -37,7 +31,7 @@ export default async function DashboardPage() {
     { label: uiText.admin.publishedArticles, value: publishedArticles, href: "/dashboard/articles" },
     { label: uiText.admin.draftArticles, value: draftArticles, href: "/dashboard/articles" },
     { label: uiText.admin.galleryWorks, value: galleryCount, href: "/dashboard/gallery" },
-    { label: uiText.admin.dailyUpdates, value: updatesCount, href: "/dashboard/updates" },
+    { label: uiText.admin.dailyUpdates, value: autoUpdates.length, href: "/dashboard/updates" },
     { label: uiText.admin.unreadOrask, value: unreadOraskCount, href: "/dashboard/orask" }
   ];
 
@@ -71,25 +65,26 @@ export default async function DashboardPage() {
             {uiText.admin.recentUpdates}
           </h2>
           <div className="mt-5 grid gap-3">
-            {recentUpdates.map((row) => {
-              const update = serializeDailyUpdate(row);
-
-              return (
-                <Link
-                  key={update.id}
-                  href="/dashboard/updates"
-                  className="rounded-2xl border border-white/10 bg-black/20 p-4 transition hover:border-white/25"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <h3 className="font-medium text-white">{update.title}</h3>
-                    <span className="rounded-full border border-white/10 px-2 py-1 text-xs text-zinc-400">
-                      {update.published ? uiText.admin.published : uiText.admin.draft}
-                    </span>
-                  </div>
-                  <p className="mt-2 text-sm text-zinc-500">{update.date}</p>
-                </Link>
-              );
-            })}
+            {autoUpdates.slice(0, 5).map((update) => (
+              <Link
+                key={update.id}
+                href="/dashboard/updates"
+                className="rounded-2xl border border-white/10 bg-black/20 p-4 transition hover:border-white/25"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="font-medium text-white">{update.title}</h3>
+                  <span className="rounded-full border border-white/10 px-2 py-1 text-xs text-zinc-400">
+                    {updateTypeMeta[update.type].label}
+                  </span>
+                </div>
+                <p className="mt-2 text-sm text-zinc-500">{update.date}</p>
+              </Link>
+            ))}
+            {autoUpdates.length === 0 ? (
+              <p className="rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-zinc-500">
+                暂无自动更新内容。
+              </p>
+            ) : null}
           </div>
         </div>
 

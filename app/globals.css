@@ -76,6 +76,29 @@ body {
   letter-spacing: 0;
 }
 
+body::before {
+  content: "";
+  position: fixed;
+  inset: -18%;
+  z-index: 90;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 16% 22%, rgb(var(--archive-ink) / 0.18) 0 0.7px, transparent 0.9px),
+    radial-gradient(circle at 68% 34%, rgb(var(--archive-ink) / 0.14) 0 0.65px, transparent 0.85px),
+    radial-gradient(circle at 42% 78%, rgb(var(--archive-ink) / 0.12) 0 0.55px, transparent 0.8px),
+    radial-gradient(circle at 84% 66%, rgb(var(--archive-ink) / 0.1) 0 0.5px, transparent 0.75px);
+  background-size: 42px 42px, 58px 58px, 37px 37px, 73px 73px;
+  opacity: 0.16;
+  mix-blend-mode: multiply;
+  transform: translate3d(0, 0, 0);
+  animation: film-grain 850ms steps(6) infinite;
+}
+
+.dark body::before {
+  opacity: 0.2;
+  mix-blend-mode: screen;
+}
+
 ::selection {
   background: var(--selection-bg);
   color: var(--selection-text);
@@ -150,8 +173,42 @@ video {
   }
 }
 
+@keyframes film-grain {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  16% {
+    transform: translate3d(-1.7%, 1.2%, 0);
+  }
+
+  33% {
+    transform: translate3d(1.5%, -1.4%, 0);
+  }
+
+  50% {
+    transform: translate3d(-1.1%, -0.8%, 0);
+  }
+
+  66% {
+    transform: translate3d(1.9%, 0.9%, 0);
+  }
+
+  83% {
+    transform: translate3d(-0.8%, 1.7%, 0);
+  }
+
+  100% {
+    transform: translate3d(0.6%, -1.1%, 0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .page-transition {
+    animation: none;
+  }
+
+  body::before {
     animation: none;
   }
 }

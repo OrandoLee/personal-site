@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LogoWordmark } from "@/components/LogoWordmark";
 import { uiText } from "@/content/uiText";
 import { cn } from "@/lib/classNames";
 
@@ -27,11 +28,7 @@ export function Navbar() {
     <header className="sticky top-0 z-50 bg-archive-paper/88 backdrop-blur-xl">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-5 px-4 py-5 sm:px-6 lg:px-8">
         <Link href="/" className="block shrink-0" aria-label={uiText.site.homeAria}>
-          <img
-            src="/logo-wordmark.svg"
-            alt={uiText.site.brand}
-            className="wordmark h-7 w-24 object-contain object-left sm:h-8 sm:w-28"
-          />
+          <LogoWordmark className="h-7 w-24 object-contain object-left sm:h-8 sm:w-28" />
         </Link>
 
         <nav className="flex items-center gap-2 overflow-x-auto">

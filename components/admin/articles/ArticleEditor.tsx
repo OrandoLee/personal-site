@@ -240,7 +240,7 @@ export function ArticleEditor({ articleId }: ArticleEditorProps) {
           <span className="text-sm text-zinc-400">{uiText.admin.livePreview}</span>
           <ArticleRenderer
             content={content}
-            className="article-body min-h-[620px] overflow-auto rounded-3xl border border-white/10 bg-[#f4efe7] p-6 text-zinc-950"
+            className="article-body min-h-[620px] overflow-auto rounded-3xl border border-white/10 bg-archive-paper2 p-6 text-archive-ink"
           />
         </div>
       </section>

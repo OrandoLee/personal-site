@@ -1,6 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  darkMode: "class",
   content: [
     "./app/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
@@ -9,16 +10,22 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        background: "rgb(var(--background) / <alpha-value>)",
+        foreground: "rgb(var(--foreground) / <alpha-value>)",
+        "muted-foreground": "rgb(var(--muted-foreground) / <alpha-value>)",
+        border: "rgb(var(--border) / <alpha-value>)",
+        card: "rgb(var(--card) / <alpha-value>)",
+        "card-foreground": "rgb(var(--card-foreground) / <alpha-value>)",
         archive: {
-          paper: "#f4efe7",
-          paper2: "#fffaf2",
-          ink: "#191714",
-          muted: "#6f675e",
-          line: "#d8cec1",
-          clay: "#b85f3c",
-          moss: "#5d6d4f",
-          blue: "#3f6472",
-          gold: "#b4883b"
+          paper: "rgb(var(--archive-paper) / <alpha-value>)",
+          paper2: "rgb(var(--archive-paper2) / <alpha-value>)",
+          ink: "rgb(var(--archive-ink) / <alpha-value>)",
+          muted: "rgb(var(--archive-muted) / <alpha-value>)",
+          line: "rgb(var(--archive-line) / <alpha-value>)",
+          clay: "rgb(var(--archive-clay) / <alpha-value>)",
+          moss: "rgb(var(--archive-moss) / <alpha-value>)",
+          blue: "rgb(var(--archive-blue) / <alpha-value>)",
+          gold: "rgb(var(--archive-gold) / <alpha-value>)"
         }
       },
       fontFamily: {
@@ -42,7 +49,7 @@ const config: Config = {
         mono: ["JetBrains Mono", "Consolas", "SFMono-Regular", "monospace"]
       },
       boxShadow: {
-        archive: "0 18px 45px rgba(25, 23, 20, 0.08)"
+        archive: "0 18px 45px rgb(var(--archive-shadow) / 0.18)"
       },
       keyframes: {
         reveal: {

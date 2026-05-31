@@ -28,7 +28,12 @@ export function SplashScreen() {
       <img
         src="/logo-wordmark.svg"
         alt={uiText.site.brand}
-        className="splash-screen__logo"
+        className="splash-screen__logo splash-screen__logo--light"
+      />
+      <img
+        src="/logo-wordmark-dark.svg"
+        alt={uiText.site.brand}
+        className="splash-screen__logo splash-screen__logo--dark"
       />
       <style jsx>{`
         .splash-screen {
@@ -38,9 +43,9 @@ export function SplashScreen() {
           display: grid;
           place-items: center;
           background:
-            linear-gradient(90deg, rgba(25, 23, 20, 0.045) 1px, transparent 1px),
-            linear-gradient(180deg, rgba(25, 23, 20, 0.035) 1px, transparent 1px),
-            #f4efe7;
+            linear-gradient(90deg, rgb(var(--archive-ink) / 0.045) 1px, transparent 1px),
+            linear-gradient(180deg, rgb(var(--archive-ink) / 0.035) 1px, transparent 1px),
+            rgb(var(--background));
           background-size: 80px 80px, 80px 80px, auto;
           pointer-events: none;
           animation: splash-shell 1800ms cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -52,6 +57,18 @@ export function SplashScreen() {
           object-fit: contain;
           animation: splash-logo 1800ms cubic-bezier(0.22, 1, 0.36, 1) both;
           will-change: opacity, transform;
+        }
+
+        .splash-screen__logo--dark {
+          display: none;
+        }
+
+        :global(.dark) .splash-screen__logo--light {
+          display: none;
+        }
+
+        :global(.dark) .splash-screen__logo--dark {
+          display: block;
         }
 
         @keyframes splash-logo {

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { SiteChrome } from "@/components/SiteChrome";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { ThemeScript } from "@/components/ThemeScript";
 import { uiText } from "@/content/uiText";
 import "./globals.css";
 
@@ -18,9 +20,14 @@ export default function RootLayout({
   children: ReactNode;
 }>) {
   return (
-    <html lang="zh-CN">
+    <html lang="zh-CN" suppressHydrationWarning>
+      <head>
+        <ThemeScript />
+      </head>
       <body>
-        <SiteChrome>{children}</SiteChrome>
+        <ThemeProvider>
+          <SiteChrome>{children}</SiteChrome>
+        </ThemeProvider>
       </body>
     </html>
   );

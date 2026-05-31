@@ -108,7 +108,11 @@ export function UploadField({ label, kind, value, onChange }: UploadFieldProps) 
           value={value ?? ""}
           onChange={(event) => onChange(event.target.value)}
           className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-white/40"
-          placeholder={kind === "image" ? "/uploads/images/..." : "/uploads/videos/..."}
+          placeholder={
+            kind === "image"
+              ? "https://...public.blob.vercel-storage.com/..."
+              : "https://...public.blob.vercel-storage.com/..."
+          }
         />
 
         {uploading || progress > 0 ? (

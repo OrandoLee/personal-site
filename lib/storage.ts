@@ -1,21 +1,27 @@
 import { randomUUID } from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { put } from "@vercel/blob";
 import { uiText } from "@/content/uiText";
 
-type UploadKind = "image" | "video";
+export type UploadKind = "image" | "video";
+
+const blobNotConfiguredMessage =
+  "Vercel Blob is not configured. Please add BLOB_READ_WRITE_TOKEN in Vercel Environment Variables.";
 
 const uploadConfig = {
   image: {
     directory: path.join(process.cwd(), "public", "uploads", "images"),
     publicPath: "/uploads/images",
+    blobDirectory: "uploads/images",
     maxMb: Number(process.env.MAX_IMAGE_UPLOAD_MB ?? 20),
-    extensions: [".jpg", ".jpeg", ".png", ".webp", ".gif"],
+    extensions: [".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg"],
     mimePrefixes: ["image/"]
   },
   video: {
     directory: path.join(process.cwd(), "public", "uploads", "videos"),
     publicPath: "/uploads/videos",
+    blobDirectory: "uploads/videos",
     maxMb: Number(process.env.MAX_VIDEO_UPLOAD_MB ?? 100),
     extensions: [".mp4", ".webm", ".mov"],
     mimePrefixes: ["video/"]
@@ -25,6 +31,7 @@ const uploadConfig = {
   {
     directory: string;
     publicPath: string;
+    blobDirectory: string;
     maxMb: number;
     extensions: string[];
     mimePrefixes: string[];
@@ -35,9 +42,32 @@ function getExtension(fileName: string) {
   return path.extname(fileName).toLowerCase();
 }
 
-export async function saveUploadFile(file: File, kind: UploadKind) {
+function shouldUseBlob() {
+  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+}
+
+function requiresBlob() {
+  return process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
+}
+
+function createUploadName(originalName: string) {
+  const extension = getExtension(originalName);
+  return `${Date.now()}-${randomUUID()}${extension}`;
+}
+
+function validateUpload({
+  kind,
+  fileName,
+  type,
+  size
+}: {
+  kind: UploadKind;
+  fileName: string;
+  type?: string;
+  size: number;
+}) {
   const config = uploadConfig[kind];
-  const extension = getExtension(file.name);
+  const extension = getExtension(fileName);
 
   if (!config.extensions.includes(extension)) {
     throw new Error(
@@ -47,28 +77,86 @@ export async function saveUploadFile(file: File, kind: UploadKind) {
     );
   }
 
-  if (!config.mimePrefixes.some((prefix) => file.type.startsWith(prefix))) {
+  if (type && !config.mimePrefixes.some((prefix) => type.startsWith(prefix))) {
     throw new Error(uiText.apiMessages.mimeMismatch);
   }
 
   const maxBytes = config.maxMb * 1024 * 1024;
 
-  if (file.size > maxBytes) {
+  if (size > maxBytes) {
     throw new Error(`${uiText.apiMessages.fileTooLargePrefix} ${config.maxMb}MB。`);
+  }
+}
+
+async function saveUploadBytes({
+  bytes,
+  fileName,
+  kind,
+  type
+}: {
+  bytes: Buffer;
+  fileName: string;
+  kind: UploadKind;
+  type?: string;
+}) {
+  const config = uploadConfig[kind];
+  const generatedName = createUploadName(fileName);
+
+  if (shouldUseBlob()) {
+    const blob = await put(`${config.blobDirectory}/${generatedName}`, bytes, {
+      access: "public",
+      contentType: type,
+      token: process.env.BLOB_READ_WRITE_TOKEN
+    });
+
+    return {
+      url: blob.url,
+      fileName: generatedName,
+      size: bytes.byteLength,
+      type: type ?? blob.contentType
+    };
+  }
+
+  if (requiresBlob()) {
+    throw new Error(blobNotConfiguredMessage);
   }
 
   await fs.mkdir(config.directory, { recursive: true });
 
-  const fileName = `${Date.now()}-${randomUUID()}${extension}`;
-  const diskPath = path.join(config.directory, fileName);
-  const bytes = Buffer.from(await file.arrayBuffer());
+  const diskPath = path.join(config.directory, generatedName);
 
   await fs.writeFile(diskPath, bytes);
 
   return {
-    url: `${config.publicPath}/${fileName}`,
-    fileName,
-    size: file.size,
-    type: file.type
+    url: `${config.publicPath}/${generatedName}`,
+    fileName: generatedName,
+    size: bytes.byteLength,
+    type
   };
+}
+
+export async function saveUploadBuffer({
+  bytes,
+  fileName,
+  kind,
+  type
+}: {
+  bytes: Buffer;
+  fileName: string;
+  kind: UploadKind;
+  type?: string;
+}) {
+  validateUpload({ kind, fileName, type, size: bytes.byteLength });
+  return saveUploadBytes({ bytes, fileName, kind, type });
+}
+
+export async function saveUploadFile(file: File, kind: UploadKind) {
+  const bytes = Buffer.from(await file.arrayBuffer());
+
+  return saveUploadBuffer({
+    bytes,
+    fileName: file.name,
+    kind,
+    type: file.type
+  });
 }

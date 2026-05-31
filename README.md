@@ -192,17 +192,9 @@ prisma/seed.ts
 
 ### 上传图片和视频
 
-图片上传到：
+新增图片在 Vercel 生产环境会上传到 Vercel Blob，并把公开 URL 保存到数据库。旧的 `/uploads/images/...` 路径仅用于历史内容兼容。
 
-```txt
-public/uploads/images
-```
-
-视频上传到：
-
-```txt
-public/uploads/videos
-```
+新增视频在 Vercel 生产环境会上传到 Vercel Blob，并把公开 URL 保存到数据库。旧的 `/uploads/videos/...` 路径仅用于历史内容兼容。
 
 上传接口：
 
@@ -319,7 +311,7 @@ npm run db:generate
 npm run db:migrate
 ```
 
-## 未来迁移云存储
+## 上传存储
 
 上传逻辑集中在：
 
@@ -327,7 +319,7 @@ npm run db:migrate
 lib/storage.ts
 ```
 
-以后要迁移到 S3、Cloudflare R2、阿里云 OSS、腾讯云 COS，只需要替换 `saveUploadFile` 的实现，让它上传到云端并返回公开 URL。后台表单和 Gallery 数据结构不需要大改。
+生产环境使用 Vercel Blob；本地开发环境在没有配置 `BLOB_READ_WRITE_TOKEN` 时，会继续写入本地 `public/uploads` 目录，方便调试。后台表单和 Gallery 数据结构只保存公开 URL。
 
 ## 常用文件
 
@@ -367,6 +359,7 @@ ADMIN_USERNAME=admin
 ADMIN_PASSWORD=change-this-password
 ADMIN_SESSION_SECRET=replace-with-a-long-random-secret
 NEXT_PUBLIC_SITE_URL=https://your-domain.vercel.app
+BLOB_READ_WRITE_TOKEN=vercel_blob_rw_token
 ```
 
 如果需要 Orask 邮件发送，还需要配置：
@@ -380,4 +373,6 @@ SMTP_PASS=your-smtp-authorization-code
 ORASK_RECEIVER_EMAIL=receiver@example.com
 ```
 
-当前部署为了最少改动继续使用 SQLite，并在构建时执行 `db:init` 和 `db:seed`，保证全新 Vercel 环境可以完成构建并访问公开页面。后台内容写入和上传文件如需长期保存，后续应迁移到 PostgreSQL 和对象存储。
+当前部署为了最少改动继续使用 SQLite，并在构建时执行 `db:init` 和 `db:seed`，保证全新 Vercel 环境可以完成构建并访问公开页面。后台新增图片、视频和 Markdown ZIP 内图片会上传到 Vercel Blob；生产环境如果缺少 `BLOB_READ_WRITE_TOKEN`，后台上传会显示：`Vercel Blob is not configured. Please add BLOB_READ_WRITE_TOKEN in Vercel Environment Variables.`
+
+后台内容写入如需长期保存，后续应迁移到 PostgreSQL。

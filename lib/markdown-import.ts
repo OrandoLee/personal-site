@@ -101,14 +101,14 @@ export function isRemoteImagePath(url: string) {
   return /^https?:\/\//i.test(url);
 }
 
-export function isUploadedImagePath(url: string) {
-  return url.startsWith("/uploads/images/");
+export function isLegacyUploadPath(url: string) {
+  return url.startsWith("/uploads/images/") || url.startsWith("/uploads/videos/");
 }
 
 export function isRelativeImagePath(url: string) {
   return (
     !isRemoteImagePath(url) &&
-    !isUploadedImagePath(url) &&
+    !isLegacyUploadPath(url) &&
     !url.startsWith("/") &&
     !url.startsWith("#") &&
     !url.startsWith("data:")
@@ -183,4 +183,3 @@ export function parseMarkdownArticle(source: string, fileName = "article.md") {
     localImages: getLocalMarkdownImages(content)
   } satisfies ImportedMarkdownArticle;
 }
-

@@ -4,7 +4,6 @@ import { ArticleRenderer } from "@/components/ArticleRenderer";
 import { uiText } from "@/content/uiText";
 import {
   formatArticleCategory,
-  getAllArticles,
   getArticleBySlug
 } from "@/lib/articles";
 
@@ -15,11 +14,6 @@ type ArticlePageProps = {
 };
 
 export const dynamic = "force-dynamic";
-
-export async function generateStaticParams() {
-  const articles = await getAllArticles();
-  return articles.map((article) => ({ slug: article.slug }));
-}
 
 export async function generateMetadata({ params }: ArticlePageProps) {
   const article = await getArticleBySlug(params.slug);

@@ -26,7 +26,7 @@ Creator Admin 包含：
 - TypeScript
 - Tailwind CSS
 - Prisma
-- SQLite
+- PostgreSQL
 - Nodemailer
 - zod
 - react-hook-form
@@ -52,7 +52,7 @@ cp .env.example .env.local
 `.env.local` 示例：
 
 ```env
-DATABASE_URL="file:./dev.db"
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DATABASE?sslmode=require"
 
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=change-this-password
@@ -76,22 +76,20 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 
 ```bash
 npm run db:generate
-npm run db:init
-npm run db:seed
+npm run db:push
 ```
 
 常用数据库命令：
 
 ```bash
 npm run db:generate
-npm run db:init
 npm run db:push
 npm run db:migrate
 npm run db:seed
 npm run db:studio
 ```
 
-说明：`db:push` 是 Prisma 标准同步命令；`db:init` 使用 `prisma/init.sql` 幂等建表，适合 Windows 本地 Prisma engine 偶发报错时使用。
+说明：生产环境必须使用 PostgreSQL。首次配置数据库后，可运行 `npm run db:push` 同步 Prisma schema；如需填充示例数据，再运行 `npm run db:seed`。
 
 ## 运行网站
 
@@ -293,9 +291,9 @@ SMTP_PASS=your-smtp-authorization-code
 ORASK_RECEIVER_EMAIL=13218009000@163.com
 ```
 
-## 未来迁移 PostgreSQL
+## 数据库配置
 
-把 `prisma/schema.prisma` 的 datasource 改为：
+`prisma/schema.prisma` 的 datasource 使用 PostgreSQL：
 
 ```prisma
 datasource db {
@@ -304,11 +302,11 @@ datasource db {
 }
 ```
 
-然后把 `.env.local` 的 `DATABASE_URL` 换成 PostgreSQL 连接串，再执行：
+把 `.env.local` 或 Vercel Environment Variables 的 `DATABASE_URL` 设置为 PostgreSQL 连接串，再执行：
 
 ```bash
 npm run db:generate
-npm run db:migrate
+npm run db:push
 ```
 
 ## 上传存储
@@ -354,7 +352,7 @@ npm run build
 生产环境至少需要配置：
 
 ```env
-DATABASE_URL="file:./dev.db"
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DATABASE?sslmode=require"
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=change-this-password
 ADMIN_SESSION_SECRET=replace-with-a-long-random-secret
@@ -373,6 +371,6 @@ SMTP_PASS=your-smtp-authorization-code
 ORASK_RECEIVER_EMAIL=receiver@example.com
 ```
 
-当前部署为了最少改动继续使用 SQLite，并在构建时执行 `db:init` 和 `db:seed`，保证全新 Vercel 环境可以完成构建并访问公开页面。后台新增图片、视频和 Markdown ZIP 内图片会上传到 Vercel Blob；生产环境如果缺少 `BLOB_READ_WRITE_TOKEN`，后台上传会显示：`Vercel Blob is not configured. Please add BLOB_READ_WRITE_TOKEN in Vercel Environment Variables.`
+当前部署使用 PostgreSQL。构建阶段只执行 `prisma generate` 和 `next build`，不会初始化或写入数据库。后台新增图片、视频和 Markdown ZIP 内图片会上传到 Vercel Blob；生产环境如果缺少 `BLOB_READ_WRITE_TOKEN`，后台上传会显示：`Vercel Blob is not configured. Please add BLOB_READ_WRITE_TOKEN in Vercel Environment Variables.`
 
-后台内容写入如需长期保存，后续应迁移到 PostgreSQL。
+后台内容会写入 `DATABASE_URL` 指向的 PostgreSQL 数据库。

@@ -39,7 +39,7 @@ export function UpdateCard({ update, compact = false }: UpdateCardProps) {
             {formatDate(update.date)}
           </time>
         </div>
-        <h3 className="font-serif text-2xl font-semibold leading-tight text-archive-ink">
+        <h3 className="display-serif text-2xl font-semibold leading-tight text-archive-ink">
           {update.title}
         </h3>
         <p className="mt-4 text-sm leading-7 text-archive-muted">

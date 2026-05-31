@@ -55,6 +55,21 @@ function createUploadName(originalName: string) {
   return `${Date.now()}-${randomUUID()}${extension}`;
 }
 
+export function getUploadConstraints(kind: UploadKind) {
+  const config = uploadConfig[kind];
+
+  return {
+    allowedContentTypes: config.mimePrefixes.map((prefix) => `${prefix}*`),
+    maximumSizeInBytes: config.maxMb * 1024 * 1024
+  };
+}
+
+export function assertBlobConfigured() {
+  if (!shouldUseBlob()) {
+    throw new Error(blobNotConfiguredMessage);
+  }
+}
+
 function validateUpload({
   kind,
   fileName,

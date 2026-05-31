@@ -1,5 +1,6 @@
 "use client";
 
+import { upload } from "@vercel/blob/client";
 import { useRef, useState } from "react";
 import { uiText } from "@/content/uiText";
 
@@ -16,51 +17,36 @@ export function UploadField({ label, kind, value, onChange }: UploadFieldProps) 
   const [message, setMessage] = useState("");
   const [uploading, setUploading] = useState(false);
 
-  function upload(file: File) {
-    const formData = new FormData();
-    formData.append("file", file);
+  async function uploadFile(file: File) {
     setUploading(true);
     setProgress(0);
     setMessage("");
 
-    const request = new XMLHttpRequest();
-    request.open("POST", `/api/admin/upload/${kind}`);
-
-    request.upload.onprogress = (event) => {
-      if (event.lengthComputable) {
-        setProgress(Math.round((event.loaded / event.total) * 100));
-      }
-    };
-
-    request.onload = () => {
-      setUploading(false);
-
-      try {
-        const result = JSON.parse(request.responseText) as {
-          ok?: boolean;
-          data?: { url?: string };
-          message?: string;
-        };
-
-        if (request.status >= 200 && request.status < 300 && result.data?.url) {
-          onChange(result.data.url);
-          setProgress(100);
-          setMessage(uiText.admin.uploadComplete);
-          return;
+    try {
+      const extension = file.name.split(".").pop();
+      const fileName = `${Date.now()}-${crypto.randomUUID()}${
+        extension ? `.${extension.toLowerCase()}` : ""
+      }`;
+      const directory = kind === "image" ? "uploads/images" : "uploads/videos";
+      const blob = await upload(`${directory}/${fileName}`, file, {
+        access: "public",
+        contentType: file.type,
+        handleUploadUrl: "/api/admin/upload/blob",
+        clientPayload: kind,
+        multipart: true,
+        onUploadProgress: (event) => {
+          setProgress(Math.round(event.percentage));
         }
+      });
 
-        setMessage(result.message ?? uiText.admin.uploadFailed);
-      } catch {
-        setMessage(uiText.admin.uploadFailed);
-      }
-    };
-
-    request.onerror = () => {
+      onChange(blob.url);
+      setProgress(100);
+      setMessage(uiText.admin.uploadComplete);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : uiText.admin.uploadFailed);
+    } finally {
       setUploading(false);
-      setMessage(uiText.admin.uploadNetworkError);
-    };
-
-    request.send(formData);
+    }
   }
 
   return (
@@ -88,7 +74,7 @@ export function UploadField({ label, kind, value, onChange }: UploadFieldProps) 
             onChange={(event) => {
               const file = event.target.files?.[0];
               if (file) {
-                upload(file);
+                void uploadFile(file);
               }
               event.currentTarget.value = "";
             }}

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1500" role="img" aria-label="铬色花园海报">
+  <rect width="1200" height="1500" fill="#f4efe7"/>
+  <rect x="88" y="94" width="1024" height="1312" fill="#191714"/>
+  <rect x="126" y="132" width="948" height="1236" fill="#fffaf2"/>
+  <path d="M158 255h884M158 500h884M158 745h884M158 990h884M158 1235h884" stroke="#191714" stroke-opacity=".12"/>
+  <path d="M296 132v1236M516 132v1236M736 132v1236M956 132v1236" stroke="#191714" stroke-opacity=".1"/>
+  <circle cx="363" cy="424" r="172" fill="#b4883b"/>
+  <circle cx="778" cy="578" r="246" fill="#3f6472" opacity=".88"/>
+  <circle cx="645" cy="829" r="166" fill="#b85f3c" opacity=".9"/>
+  <rect x="222" y="1050" width="756" height="98" fill="#fffaf2" stroke="#191714" stroke-opacity=".28"/>
+  <text x="250" y="1113" fill="#191714" font-family="Arial, sans-serif" font-size="44" letter-spacing="10">CHROME GARDEN</text>
+  <text x="220" y="1246" fill="#191714" opacity=".72" font-family="Arial, sans-serif" font-size="23" letter-spacing="8">POSTER / DIARY / DIGITAL FIELD</text>
+</svg>

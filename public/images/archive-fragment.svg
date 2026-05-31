@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-label="档案切片">
+  <rect width="1200" height="900" fill="#f4efe7"/>
+  <rect x="72" y="76" width="1056" height="748" fill="#fffaf2" stroke="#191714" stroke-opacity=".18"/>
+  <path d="M96 185h1008M96 365h1008M96 545h1008M96 725h1008" stroke="#191714" stroke-opacity=".1"/>
+  <path d="M248 94v712M502 94v712M756 94v712M1010 94v712" stroke="#191714" stroke-opacity=".1"/>
+  <rect x="156" y="140" width="392" height="246" fill="#191714"/>
+  <rect x="604" y="140" width="324" height="88" fill="#b85f3c"/>
+  <rect x="604" y="264" width="440" height="34" fill="#191714" opacity=".72"/>
+  <rect x="604" y="328" width="288" height="34" fill="#191714" opacity=".38"/>
+  <rect x="156" y="470" width="292" height="42" fill="#3f6472"/>
+  <rect x="156" y="548" width="574" height="34" fill="#191714" opacity=".62"/>
+  <rect x="156" y="614" width="456" height="34" fill="#191714" opacity=".32"/>
+  <rect x="800" y="456" width="244" height="244" fill="#b4883b"/>
+  <circle cx="922" cy="578" r="68" fill="#fffaf2" opacity=".74"/>
+  <text x="156" y="760" fill="#191714" opacity=".78" font-family="Arial, sans-serif" font-size="34" letter-spacing="12">ARCHIVE FRAGMENT</text>
+</svg>

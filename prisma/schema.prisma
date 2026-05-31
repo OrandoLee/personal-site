@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model DailyUpdate {
+  id          String   @id @default(cuid())
+  title       String
+  type        String
+  date        DateTime
+  description String
+  cover       String?
+  link        String?
+  published   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([published, date])
+  @@index([type, date])
+}
+
+model Article {
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  date      DateTime
+  category  String
+  tags      String   @default("[]")
+  summary   String
+  cover     String?
+  content   String
+  published Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([published, date])
+  @@index([category, date])
+}
+
+model GalleryItem {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  type        String
+  src         String
+  thumbnail   String?
+  date        DateTime
+  description String
+  tags        String   @default("[]")
+  category    String
+  published   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([published, date])
+  @@index([category, date])
+  @@index([type, date])
+}
+
+model OraskMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  source    String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([read, createdAt])
+  @@index([email, createdAt])
+}

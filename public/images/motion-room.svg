@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-label="动态房间">
+  <rect width="1200" height="900" fill="#f4efe7"/>
+  <rect x="118" y="118" width="964" height="664" fill="#fffaf2" stroke="#191714" stroke-opacity=".18"/>
+  <rect x="190" y="196" width="820" height="510" fill="#f4efe7" stroke="#191714" stroke-opacity=".14"/>
+  <path d="M190 706l190-510M1010 706L820 196" stroke="#191714" stroke-opacity=".12"/>
+  <rect x="386" y="322" width="428" height="244" fill="#3f6472"/>
+  <rect x="470" y="384" width="260" height="120" fill="#191714" opacity=".82"/>
+  <path d="M536 414l126 60-126 60z" fill="#fffaf2"/>
+  <text x="170" y="820" fill="#b85f3c" font-family="Arial, sans-serif" font-size="28" letter-spacing="10">MOTION ROOM</text>
+</svg>

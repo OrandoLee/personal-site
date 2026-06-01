@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { GalleryCard } from "@/components/GalleryCard";
 import { uiText } from "@/content/uiText";
 import type { GalleryCategory, GalleryItem } from "@/data/gallery";
@@ -19,6 +20,7 @@ export function GalleryExplorer({ items }: GalleryExplorerProps) {
     useState<GalleryCategory | typeof allCategory>(allCategory);
   const [preview, setPreview] = useState<GalleryItem | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null);
   const closeTimerRef = useRef<number | null>(null);
   const modalVideoRef = useRef<HTMLVideoElement | null>(null);
   const categories = [
@@ -29,6 +31,10 @@ export function GalleryExplorer({ items }: GalleryExplorerProps) {
     activeCategory === allCategory
       ? items
       : items.filter((item) => item.category === activeCategory);
+
+  useEffect(() => {
+    setPortalRoot(document.body);
+  }, []);
 
   const openPreview = useCallback((item: GalleryItem) => {
     if (closeTimerRef.current) {
@@ -104,6 +110,105 @@ export function GalleryExplorer({ items }: GalleryExplorerProps) {
     };
   }, [stopModalVideo]);
 
+  const previewLightbox =
+    preview && portalRoot
+      ? createPortal(
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${uiText.gallery.previewAriaPrefix}${preview.title}`}
+            onClick={closePreview}
+            data-state={isPreviewOpen ? "open" : "closed"}
+            className="gallery-lightbox fixed inset-0 z-[80] grid place-items-center overflow-y-auto bg-black/72 p-3 backdrop-blur-sm sm:p-4"
+          >
+            <div
+              className="gallery-lightbox__panel flex max-h-[calc(100dvh-1.5rem)] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-archive-line bg-archive-paper2 p-2 shadow-archive sm:max-h-[calc(100dvh-2rem)] sm:rounded-3xl sm:p-3"
+              onClick={(event) => event.stopPropagation()}
+            >
+              {preview.type === "video" ? (
+                <video
+                  key={preview.src}
+                  ref={modalVideoRef}
+                  src={preview.src}
+                  poster={preview.thumbnail}
+                  className="gallery-lightbox__media w-full rounded-xl bg-black object-contain sm:rounded-2xl"
+                  controls
+                  autoPlay
+                  loop
+                  playsInline
+                  onClick={(event) => event.stopPropagation()}
+                />
+              ) : (
+                <img
+                  src={preview.src}
+                  alt={preview.title}
+                  className="gallery-lightbox__media w-full object-contain"
+                />
+              )}
+              <div className="flex shrink-0 flex-col gap-3 border-t border-archive-line p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+                <div className="min-w-0">
+                  <h2 className="break-words font-serif text-xl font-semibold text-archive-ink sm:text-2xl">
+                    {preview.title}
+                  </h2>
+                  <p className="mt-1 break-words text-sm text-archive-muted">
+                    {preview.description}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={closePreview}
+                  className="min-h-11 shrink-0 rounded-full border border-archive-line px-5 py-2 text-sm text-archive-muted transition hover:border-archive-ink hover:text-archive-ink"
+                >
+                  {uiText.gallery.closePreview}
+                </button>
+              </div>
+            </div>
+            <style jsx>{`
+              .gallery-lightbox {
+                opacity: 0;
+                transition: opacity 180ms ease;
+              }
+
+              .gallery-lightbox[data-state="open"] {
+                opacity: 1;
+              }
+
+              .gallery-lightbox__panel {
+                opacity: 0;
+                transform: translateY(8px) scale(0.975);
+                transition:
+                  opacity 180ms ease,
+                  transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+              }
+
+              .gallery-lightbox[data-state="open"] .gallery-lightbox__panel {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+              }
+
+              .gallery-lightbox__media {
+                display: block;
+                max-height: min(72vh, calc(100dvh - 10.5rem));
+              }
+
+              @media (max-width: 640px) {
+                .gallery-lightbox__media {
+                  max-height: calc(100dvh - 12.5rem);
+                }
+              }
+
+              @media (prefers-reduced-motion: reduce) {
+                .gallery-lightbox,
+                .gallery-lightbox__panel {
+                  transition: none;
+                }
+              }
+            `}</style>
+          </div>,
+          portalRoot
+        )
+      : null;
+
   return (
     <>
       <div className="mb-10 flex flex-wrap gap-2">
@@ -135,89 +240,7 @@ export function GalleryExplorer({ items }: GalleryExplorerProps) {
         ))}
       </section>
 
-      {preview ? (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label={`${uiText.gallery.previewAriaPrefix}${preview.title}`}
-          onClick={closePreview}
-          data-state={isPreviewOpen ? "open" : "closed"}
-          className="gallery-lightbox fixed inset-0 z-[80] grid place-items-center bg-black/72 p-4 backdrop-blur-sm"
-        >
-          <div
-            className="gallery-lightbox__panel max-h-[88vh] w-full max-w-5xl rounded-3xl border border-archive-line bg-archive-paper2 p-3 shadow-archive"
-            onClick={(event) => event.stopPropagation()}
-          >
-            {preview.type === "video" ? (
-              <video
-                key={preview.src}
-                ref={modalVideoRef}
-                src={preview.src}
-                poster={preview.thumbnail}
-                className="max-h-[72vh] w-full rounded-2xl bg-black object-contain"
-                controls
-                autoPlay
-                loop
-                playsInline
-                onClick={(event) => event.stopPropagation()}
-              />
-            ) : (
-              <img
-                src={preview.src}
-                alt={preview.title}
-                className="max-h-[72vh] w-full object-contain"
-              />
-            )}
-            <div className="flex flex-col gap-3 border-t border-archive-line p-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h2 className="font-serif text-2xl font-semibold text-archive-ink">
-                  {preview.title}
-                </h2>
-                <p className="mt-1 text-sm text-archive-muted">
-                  {preview.description}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={closePreview}
-                className="min-h-11 rounded-full border border-archive-line px-5 py-2 text-sm text-archive-muted transition hover:border-archive-ink hover:text-archive-ink"
-              >
-                {uiText.gallery.closePreview}
-              </button>
-            </div>
-          </div>
-          <style jsx>{`
-            .gallery-lightbox {
-              opacity: 0;
-              transition: opacity 180ms ease;
-            }
-
-            .gallery-lightbox[data-state="open"] {
-              opacity: 1;
-            }
-
-            .gallery-lightbox__panel {
-              opacity: 0;
-              transform: translateY(8px) scale(0.975);
-              transition:
-                opacity 180ms ease,
-                transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
-            }
-
-            .gallery-lightbox[data-state="open"] .gallery-lightbox__panel {
-              opacity: 1;
-              transform: translateY(0) scale(1);
-            }
-
-            @media (prefers-reduced-motion: reduce) {
-              .gallery-lightbox,
-              .gallery-lightbox__panel {
-                transition: none;
-              }
-            }
-          `}</style>
-        </div>
-      ) : null}
+      {previewLightbox}
     </>
   );
 }

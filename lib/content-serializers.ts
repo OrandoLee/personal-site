@@ -57,6 +57,36 @@ export function stringifyTags(tags: string[]) {
   );
 }
 
+export function parseGalleryImages(value: string | null | undefined, fallback: string) {
+  if (!value) {
+    return fallback ? [fallback] : [];
+  }
+
+  try {
+    const parsed = JSON.parse(value);
+
+    if (Array.isArray(parsed)) {
+      const images = parsed.map((url) => String(url).trim()).filter(Boolean);
+      return images.length > 0 ? images : fallback ? [fallback] : [];
+    }
+  } catch {
+    const images = value
+      .split(",")
+      .map((url) => url.trim())
+      .filter(Boolean);
+
+    return images.length > 0 ? images : fallback ? [fallback] : [];
+  }
+
+  return fallback ? [fallback] : [];
+}
+
+export function stringifyGalleryImages(images: string[]) {
+  return JSON.stringify(
+    images.map((url) => url.trim()).filter((url) => url.length > 0)
+  );
+}
+
 export function serializeDailyUpdate(row: DbDailyUpdate): UpdateItem & {
   published: boolean;
   createdAt: string;
@@ -112,6 +142,7 @@ export function serializeGalleryItem(row: DbGalleryItem): GalleryItem & {
     title: row.title,
     type: row.type as GalleryItemType,
     src: row.src,
+    images: parseGalleryImages(row.images, row.src),
     thumbnail: row.thumbnail ?? undefined,
     date: dateToInput(row.date),
     description: row.description,

@@ -14,6 +14,7 @@ export type GalleryItem = {
   title: string;
   type: GalleryItemType;
   src: string;
+  images?: string[];
   thumbnail?: string;
   date: string;
   description: string;

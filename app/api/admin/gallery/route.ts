@@ -11,6 +11,7 @@ import {
 import {
   dateInputToDate,
   serializeGalleryItem,
+  stringifyGalleryImages,
   stringifyTags
 } from "@/lib/content-serializers";
 import { prisma } from "@/lib/db";
@@ -66,6 +67,7 @@ export async function POST(request: Request) {
         slug: parsed.data.slug,
         type: parsed.data.type,
         src: parsed.data.src,
+        images: stringifyGalleryImages(parsed.data.images),
         thumbnail: parsed.data.thumbnail,
         date: dateInputToDate(parsed.data.date),
         description: parsed.data.description,

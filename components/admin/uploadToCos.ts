@@ -45,6 +45,7 @@ function putFile(
 ) {
   return new Promise<void>((resolve, reject) => {
     const request = new XMLHttpRequest();
+    const uploadHost = new URL(target.uploadUrl).host;
 
     request.open("PUT", target.uploadUrl);
     request.setRequestHeader("Authorization", target.authorization);
@@ -61,9 +62,16 @@ function putFile(
         return;
       }
 
-      reject(new Error(`Tencent COS upload failed: ${request.status}`));
+      const response = request.responseText ? ` ${request.responseText}` : "";
+      reject(new Error(`Tencent COS upload failed: ${request.status} ${uploadHost}.${response}`));
     };
-    request.onerror = () => reject(new Error("Tencent COS upload failed."));
+    request.onerror = () => {
+      reject(
+        new Error(
+          `Tencent COS upload failed: browser blocked the request to ${uploadHost}. Check CORS, bucket env, or the current page domain.`
+        )
+      );
+    };
     request.send(file);
   });
 }

@@ -16,6 +16,7 @@ const navItems = [
   { href: "/dashboard/updates", label: uiText.admin.navUpdates },
   { href: "/dashboard/articles", label: uiText.admin.navArticles },
   { href: "/dashboard/gallery", label: uiText.admin.navGallery },
+  { href: "/dashboard/default-covers", label: "默认封面" },
   { href: "/dashboard/orask", label: uiText.admin.navOrask },
   { href: "/dashboard/settings", label: uiText.admin.navSettings }
 ];

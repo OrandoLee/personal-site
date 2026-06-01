@@ -4,6 +4,10 @@ import {
   serializeGalleryItem
 } from "@/lib/content-serializers";
 import type { UpdateItem, UpdateType } from "@/data/updates";
+import {
+  defaultCoverKeyForArticleCategory,
+  getDefaultCoverMap
+} from "@/lib/default-covers";
 
 type AutoUpdateSource = UpdateItem & {
   updatedAt: Date;
@@ -15,7 +19,7 @@ function galleryUpdateType(type: string): UpdateType {
 }
 
 export async function getPublicUpdates() {
-  const [articles, galleryItems] = await Promise.all([
+  const [articles, galleryItems, defaultCovers] = await Promise.all([
     prisma.article.findMany({
       where: { published: true },
       orderBy: [{ updatedAt: "desc" }],
@@ -23,6 +27,7 @@ export async function getPublicUpdates() {
         id: true,
         title: true,
         slug: true,
+        category: true,
         summary: true,
         cover: true,
         featured: true,
@@ -43,7 +48,8 @@ export async function getPublicUpdates() {
         featured: true,
         updatedAt: true
       }
-    })
+    }),
+    getDefaultCoverMap()
   ]);
 
   const updates: AutoUpdateSource[] = [
@@ -53,7 +59,10 @@ export async function getPublicUpdates() {
       type: "article" as const,
       date: dateToInput(article.updatedAt),
       description: article.summary,
-      cover: article.cover ?? undefined,
+      cover:
+        article.cover ??
+        defaultCovers[defaultCoverKeyForArticleCategory(article.category)] ??
+        undefined,
       link: `/articles/${article.slug}`,
       featured: article.featured,
       featuredRank: article.featured ? 1 : 0,
@@ -65,7 +74,9 @@ export async function getPublicUpdates() {
       type: galleryUpdateType(item.type),
       date: dateToInput(item.updatedAt),
       description: item.description,
-      cover: item.thumbnail ?? (item.type === "image" ? item.src : undefined),
+      cover:
+        item.thumbnail ??
+        (item.type === "video" ? defaultCovers.video : item.src || undefined),
       link: `/gallery#${item.slug}`,
       featured: item.featured,
       featuredRank: item.featured ? 1 : 0,
@@ -85,10 +96,19 @@ export async function getPublicUpdates() {
 }
 
 export async function getPublicGalleryItems() {
-  const rows = await prisma.galleryItem.findMany({
-    where: { published: true },
-    orderBy: [{ featured: "desc" }, { date: "desc" }, { updatedAt: "desc" }]
-  });
+  const [rows, defaultCovers] = await Promise.all([
+    prisma.galleryItem.findMany({
+      where: { published: true },
+      orderBy: [{ featured: "desc" }, { date: "desc" }, { updatedAt: "desc" }]
+    }),
+    getDefaultCoverMap()
+  ]);
 
-  return rows.map(serializeGalleryItem);
+  return rows.map((row) => {
+    const item = serializeGalleryItem(row);
+
+    return row.type === "video" && !row.thumbnail
+      ? { ...item, thumbnail: defaultCovers.video }
+      : item;
+  });
 }

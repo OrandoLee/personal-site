@@ -75,7 +75,8 @@ export const gallerySchema = z.object({
   tags: z.array(z.string().trim().min(1)).default([]),
   category: z.enum(["image", "video", "poster", "animation", "experiment"]),
   published: z.boolean().default(false),
-  featured: z.boolean().default(false)
+  featured: z.boolean().default(false),
+  showWatermark: z.boolean().optional()
 });
 
 export const oraskPatchSchema = z.object({

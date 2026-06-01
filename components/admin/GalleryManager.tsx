@@ -25,6 +25,7 @@ type GalleryForm = {
   tagsText: string;
   published: boolean;
   featured: boolean;
+  showWatermark: boolean;
 };
 
 const defaultValues: GalleryForm = {
@@ -37,7 +38,8 @@ const defaultValues: GalleryForm = {
   description: "",
   tagsText: "",
   published: false,
-  featured: false
+  featured: false,
+  showWatermark: true
 };
 
 const categories: GalleryCategory[] = [
@@ -77,7 +79,8 @@ function itemToForm(item: AdminGalleryItem): GalleryForm {
     description: item.description,
     tagsText: item.tags.join(", "),
     published: item.published,
-    featured: item.featured
+    featured: item.featured,
+    showWatermark: item.showWatermark
   };
 }
 
@@ -394,7 +397,8 @@ export function GalleryManager() {
       tags: toTags(values.tagsText),
       category: values.type === "video" ? "video" : "image",
       published: values.published,
-      featured: values.featured
+      featured: values.featured,
+      showWatermark: values.type === "image" ? values.showWatermark : false
     };
     const endpoint = activeItem
       ? `/api/admin/gallery/${activeItem.id}`
@@ -651,6 +655,12 @@ export function GalleryManager() {
             />
           </div>
           <MediaSetEditor kind={type} urls={mediaUrls} onChange={setMediaUrls} />
+          {type === "image" ? (
+            <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-zinc-300">
+              <input type="checkbox" {...register("showWatermark")} />
+              前台图片显示 DELEE 水印
+            </label>
+          ) : null}
           {type === "video" ? (
             <UploadField
               label={uiText.admin.videoCover}

@@ -171,6 +171,7 @@ export function GalleryExplorer({ items }: GalleryExplorerProps) {
                     src={activePreviewMedia}
                     alt={preview.title}
                     data-direction={imageDirection}
+                    showWatermark={preview.showWatermark !== false}
                     wrapperClassName="gallery-lightbox__image-frame"
                     watermarkClassName="site-photo-watermark--large"
                     className="gallery-lightbox__media gallery-lightbox__image max-w-full object-contain"

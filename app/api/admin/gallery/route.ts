@@ -67,7 +67,10 @@ export async function POST(request: Request) {
         slug: parsed.data.slug,
         type: parsed.data.type,
         src: parsed.data.src,
-        images: stringifyGalleryImages(parsed.data.images),
+        images: stringifyGalleryImages(
+          parsed.data.images,
+          parsed.data.showWatermark ?? true
+        ),
         thumbnail: parsed.data.thumbnail,
         date: dateInputToDate(parsed.data.date),
         description: parsed.data.description,

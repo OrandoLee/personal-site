@@ -1,10 +1,10 @@
 "use client";
 
-import { upload } from "@vercel/blob/client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { UploadField } from "@/components/admin/UploadField";
 import type { AdminGalleryItem, ApiResult } from "@/components/admin/types";
+import { uploadToCos } from "@/components/admin/uploadToCos";
 import { uiText } from "@/content/uiText";
 import {
   galleryCategoryLabels,
@@ -120,28 +120,20 @@ function MediaSetEditor({ kind, urls, onChange }: MediaSetEditorProps) {
 
     try {
       const uploadedUrls: string[] = [];
-      const directory = isVideo ? "uploads/videos" : "uploads/images";
 
       for (let index = 0; index < files.length; index += 1) {
         const file = files[index];
-        const extension = file.name.split(".").pop();
-        const fileName = `${Date.now()}-${crypto.randomUUID()}${
-          extension ? `.${extension.toLowerCase()}` : ""
-        }`;
-        const blob = await upload(`${directory}/${fileName}`, file, {
-          access: "public",
-          contentType: file.type,
-          handleUploadUrl: "/api/admin/upload/blob",
-          clientPayload: kind,
-          multipart: true,
-          onUploadProgress: (event) => {
+        const url = await uploadToCos({
+          file,
+          kind,
+          onProgress: (percentage) => {
             const fileBase = (index / files.length) * 100;
-            const fileProgress = event.percentage / files.length;
+            const fileProgress = percentage / files.length;
             setProgress(Math.round(fileBase + fileProgress));
           }
         });
 
-        uploadedUrls.push(blob.url);
+        uploadedUrls.push(url);
       }
 
       addUrls(uploadedUrls);

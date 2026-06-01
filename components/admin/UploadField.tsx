@@ -1,7 +1,7 @@
 "use client";
 
-import { upload } from "@vercel/blob/client";
 import { useRef, useState } from "react";
+import { uploadToCos } from "@/components/admin/uploadToCos";
 import { uiText } from "@/content/uiText";
 
 type UploadFieldProps = {
@@ -23,23 +23,13 @@ export function UploadField({ label, kind, value, onChange }: UploadFieldProps) 
     setMessage("");
 
     try {
-      const extension = file.name.split(".").pop();
-      const fileName = `${Date.now()}-${crypto.randomUUID()}${
-        extension ? `.${extension.toLowerCase()}` : ""
-      }`;
-      const directory = kind === "image" ? "uploads/images" : "uploads/videos";
-      const blob = await upload(`${directory}/${fileName}`, file, {
-        access: "public",
-        contentType: file.type,
-        handleUploadUrl: "/api/admin/upload/blob",
-        clientPayload: kind,
-        multipart: true,
-        onUploadProgress: (event) => {
-          setProgress(Math.round(event.percentage));
-        }
+      const url = await uploadToCos({
+        file,
+        kind,
+        onProgress: setProgress
       });
 
-      onChange(blob.url);
+      onChange(url);
       setProgress(100);
       setMessage(uiText.admin.uploadComplete);
     } catch (error) {

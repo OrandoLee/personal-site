@@ -2,9 +2,15 @@ import { randomUUID } from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { put } from "@vercel/blob";
-import { uiText } from "@/content/uiText";
+import {
+  createCosUploadTarget,
+  getUploadConstraints,
+  isCosConfigured,
+  validateUpload,
+  type UploadKind
+} from "@/lib/tencent-cos";
 
-export type UploadKind = "image" | "video";
+export type { UploadKind };
 
 const blobNotConfiguredMessage =
   "Vercel Blob is not configured. Please add BLOB_READ_WRITE_TOKEN in Vercel Environment Variables.";
@@ -13,18 +19,12 @@ const uploadConfig = {
   image: {
     directory: path.join(process.cwd(), "public", "uploads", "images"),
     publicPath: "/uploads/images",
-    blobDirectory: "uploads/images",
-    maxMb: Number(process.env.MAX_IMAGE_UPLOAD_MB ?? 20),
-    extensions: [".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg"],
-    mimePrefixes: ["image/"]
+    blobDirectory: "uploads/images"
   },
   video: {
     directory: path.join(process.cwd(), "public", "uploads", "videos"),
     publicPath: "/uploads/videos",
-    blobDirectory: "uploads/videos",
-    maxMb: Number(process.env.MAX_VIDEO_UPLOAD_MB ?? 100),
-    extensions: [".mp4", ".webm", ".mov"],
-    mimePrefixes: ["video/"]
+    blobDirectory: "uploads/videos"
   }
 } satisfies Record<
   UploadKind,
@@ -32,9 +32,6 @@ const uploadConfig = {
     directory: string;
     publicPath: string;
     blobDirectory: string;
-    maxMb: number;
-    extensions: string[];
-    mimePrefixes: string[];
   }
 >;
 
@@ -46,7 +43,7 @@ function shouldUseBlob() {
   return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
 }
 
-function requiresBlob() {
+function requiresRemoteStorage() {
   return process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
 }
 
@@ -55,51 +52,11 @@ function createUploadName(originalName: string) {
   return `${Date.now()}-${randomUUID()}${extension}`;
 }
 
-export function getUploadConstraints(kind: UploadKind) {
-  const config = uploadConfig[kind];
-
-  return {
-    allowedContentTypes: config.mimePrefixes.map((prefix) => `${prefix}*`),
-    maximumSizeInBytes: config.maxMb * 1024 * 1024
-  };
-}
+export { getUploadConstraints };
 
 export function assertBlobConfigured() {
-  if (!shouldUseBlob()) {
+  if (!shouldUseBlob() && !isCosConfigured()) {
     throw new Error(blobNotConfiguredMessage);
-  }
-}
-
-function validateUpload({
-  kind,
-  fileName,
-  type,
-  size
-}: {
-  kind: UploadKind;
-  fileName: string;
-  type?: string;
-  size: number;
-}) {
-  const config = uploadConfig[kind];
-  const extension = getExtension(fileName);
-
-  if (!config.extensions.includes(extension)) {
-    throw new Error(
-      `${uiText.apiMessages.unsupportedFileType}：${
-        extension || uiText.apiMessages.unknownFileType
-      }`
-    );
-  }
-
-  if (type && !config.mimePrefixes.some((prefix) => type.startsWith(prefix))) {
-    throw new Error(uiText.apiMessages.mimeMismatch);
-  }
-
-  const maxBytes = config.maxMb * 1024 * 1024;
-
-  if (size > maxBytes) {
-    throw new Error(`${uiText.apiMessages.fileTooLargePrefix} ${config.maxMb}MB。`);
   }
 }
 
@@ -117,6 +74,34 @@ async function saveUploadBytes({
   const config = uploadConfig[kind];
   const generatedName = createUploadName(fileName);
 
+  if (isCosConfigured()) {
+    const target = createCosUploadTarget({
+      kind,
+      fileName,
+      type,
+      size: bytes.byteLength
+    });
+    const response = await fetch(target.uploadUrl, {
+      method: "PUT",
+      headers: {
+        Authorization: target.authorization,
+        "Content-Type": target.contentType
+      },
+      body: new Uint8Array(bytes)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Tencent COS upload failed: ${response.status}`);
+    }
+
+    return {
+      url: target.url,
+      fileName: target.key,
+      size: bytes.byteLength,
+      type
+    };
+  }
+
   if (shouldUseBlob()) {
     const blob = await put(`${config.blobDirectory}/${generatedName}`, bytes, {
       access: "public",
@@ -132,7 +117,7 @@ async function saveUploadBytes({
     };
   }
 
-  if (requiresBlob()) {
+  if (requiresRemoteStorage()) {
     throw new Error(blobNotConfiguredMessage);
   }
 

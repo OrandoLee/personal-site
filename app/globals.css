@@ -100,6 +100,91 @@ video {
   max-width: 100%;
 }
 
+.watermarked-image {
+  position: relative;
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.watermarked-image > img {
+  display: block;
+}
+
+.site-photo-watermark {
+  position: absolute;
+  right: clamp(0.5rem, 2.4%, 1rem);
+  bottom: clamp(0.5rem, 2.4%, 1rem);
+  z-index: 2;
+  width: clamp(3.25rem, 18%, 7rem);
+  aspect-ratio: 440 / 195;
+  background-image: url("/watermarks/delee-website-7-1.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 512% auto;
+  filter: drop-shadow(0 1px 4px rgb(0 0 0 / 0.24));
+  opacity: 0.78;
+  pointer-events: none;
+}
+
+.site-photo-watermark--large {
+  width: clamp(4rem, 13%, 8.5rem);
+}
+
+.gallery-lightbox__image-frame {
+  display: inline-block;
+  max-width: 100%;
+}
+
+.gallery-lightbox__image-frame .gallery-lightbox__media {
+  max-height: min(72vh, calc(100dvh - 10.5rem));
+}
+
+.gallery-lightbox__image-frame .gallery-lightbox__image {
+  animation: gallery-image-next 240ms ease both;
+}
+
+.gallery-lightbox__image-frame
+  .gallery-lightbox__image[data-direction="previous"] {
+  animation-name: gallery-image-previous;
+}
+
+@keyframes gallery-image-next {
+  from {
+    opacity: 0;
+    transform: translateX(18px) scale(0.99);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes gallery-image-previous {
+  from {
+    opacity: 0;
+    transform: translateX(-18px) scale(0.99);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@media (max-width: 640px) {
+  .gallery-lightbox__image-frame .gallery-lightbox__media {
+    max-height: calc(100dvh - 12.5rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-lightbox__image-frame .gallery-lightbox__image {
+    animation: none;
+  }
+}
+
 .archive-shell {
   min-height: 100vh;
   background: rgb(var(--archive-paper));

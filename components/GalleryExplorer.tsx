@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { GalleryCard } from "@/components/GalleryCard";
+import { WatermarkedImage } from "@/components/WatermarkedImage";
 import { uiText } from "@/content/uiText";
 import type { GalleryCategory, GalleryItem } from "@/data/gallery";
 import { galleryCategoryLabels } from "@/data/gallery";
@@ -164,13 +165,15 @@ export function GalleryExplorer({ items }: GalleryExplorerProps) {
                   onClick={(event) => event.stopPropagation()}
                 />
               ) : (
-                <div className="relative">
-                  <img
+                <div className="relative flex justify-center">
+                  <WatermarkedImage
                     key={activePreviewMedia}
                     src={activePreviewMedia}
                     alt={preview.title}
                     data-direction={imageDirection}
-                    className="gallery-lightbox__media gallery-lightbox__image w-full object-contain"
+                    wrapperClassName="gallery-lightbox__image-frame"
+                    watermarkClassName="site-photo-watermark--large"
+                    className="gallery-lightbox__media gallery-lightbox__image max-w-full object-contain"
                   />
                   {previewMedia.length > 1 ? (
                     <>

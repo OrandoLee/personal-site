@@ -49,6 +49,7 @@ model GalleryItem {
   slug        String   @unique
   type        String
   src         String
+  images      String   @default("[]")
   thumbnail   String?
   date        DateTime
   description String

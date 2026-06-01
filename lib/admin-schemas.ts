@@ -65,6 +65,7 @@ export const gallerySchema = z.object({
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, uiText.apiMessages.invalidSlug),
   type: z.enum(["image", "video"]),
   src: z.string().trim().min(1, uiText.apiMessages.inputFileUrl),
+  images: z.array(z.string().trim().min(1)).default([]),
   thumbnail: optionalText,
   date: dateString,
   description: z.string().trim().min(1, uiText.apiMessages.inputDescription),

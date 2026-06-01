@@ -18,6 +18,8 @@ export function GalleryCard({
   onPreview
 }: GalleryCardProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const displaySrc = item.images?.[0] ?? item.src;
+  const imageCount = item.type === "image" ? item.images?.length ?? 1 : 0;
 
   useEffect(() => {
     if (item.type !== "video" || !videoRef.current) {
@@ -63,11 +65,16 @@ export function GalleryCard({
             aria-label={`${uiText.gallery.previewAriaPrefix}${item.title}`}
           >
             <img
-              src={item.src}
+              src={displaySrc}
               alt={item.title}
               loading={priority ? "eager" : "lazy"}
               className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
             />
+            {imageCount > 1 ? (
+              <span className="absolute bottom-4 right-4 rounded-full border border-archive-line bg-archive-paper2/90 px-2.5 py-1 text-xs text-archive-muted shadow-sm">
+                {imageCount} 张
+              </span>
+            ) : null}
           </button>
         ) : (
           <button

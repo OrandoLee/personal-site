@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { upload } from "@vercel/blob/client";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { UploadField } from "@/components/admin/UploadField";
 import type { AdminGalleryItem, ApiResult } from "@/components/admin/types";
@@ -56,6 +57,17 @@ function toTags(tagsText: string) {
     .filter(Boolean);
 }
 
+function cleanImageUrls(images: string[]) {
+  return images.map((url) => url.trim()).filter(Boolean);
+}
+
+function moveImage(images: string[], fromIndex: number, toIndex: number) {
+  const nextImages = [...images];
+  const [movedImage] = nextImages.splice(fromIndex, 1);
+  nextImages.splice(toIndex, 0, movedImage);
+  return nextImages;
+}
+
 function itemToForm(item: AdminGalleryItem): GalleryForm {
   return {
     title: item.title,
@@ -72,6 +84,206 @@ function itemToForm(item: AdminGalleryItem): GalleryForm {
   };
 }
 
+type ImageSetEditorProps = {
+  images: string[];
+  onChange: (images: string[]) => void;
+};
+
+function ImageSetEditor({ images, onChange }: ImageSetEditorProps) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [manualUrl, setManualUrl] = useState("");
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [message, setMessage] = useState("");
+  const [uploading, setUploading] = useState(false);
+
+  function addImages(urls: string[]) {
+    const nextImages = cleanImageUrls([...images, ...urls]);
+    onChange(Array.from(new Set(nextImages)));
+  }
+
+  async function uploadFiles(files: File[]) {
+    if (files.length === 0) {
+      return;
+    }
+
+    setUploading(true);
+    setProgress(0);
+    setMessage("");
+
+    try {
+      const uploadedUrls: string[] = [];
+
+      for (let index = 0; index < files.length; index += 1) {
+        const file = files[index];
+        const extension = file.name.split(".").pop();
+        const fileName = `${Date.now()}-${crypto.randomUUID()}${
+          extension ? `.${extension.toLowerCase()}` : ""
+        }`;
+        const blob = await upload(`uploads/images/${fileName}`, file, {
+          access: "public",
+          contentType: file.type,
+          handleUploadUrl: "/api/admin/upload/blob",
+          clientPayload: "image",
+          multipart: true,
+          onUploadProgress: (event) => {
+            const fileBase = (index / files.length) * 100;
+            const fileProgress = event.percentage / files.length;
+            setProgress(Math.round(fileBase + fileProgress));
+          }
+        });
+
+        uploadedUrls.push(blob.url);
+      }
+
+      addImages(uploadedUrls);
+      setProgress(100);
+      setMessage(uiText.admin.uploadComplete);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : uiText.admin.uploadFailed);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <div className="grid gap-3">
+      <span className="text-sm text-zinc-400">图组图片</span>
+      <div className="grid gap-3 rounded-2xl border border-white/10 bg-black/20 p-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            disabled={uploading}
+            className="rounded-full bg-white px-4 py-2 text-xs font-medium text-zinc-950 transition hover:bg-zinc-200 disabled:opacity-60"
+          >
+            {uploading ? uiText.admin.statusUploading : "上传多张图片"}
+          </button>
+          <input
+            ref={inputRef}
+            type="file"
+            multiple
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            className="hidden"
+            onChange={(event) => {
+              void uploadFiles(Array.from(event.target.files ?? []));
+              event.currentTarget.value = "";
+            }}
+          />
+          <span className="text-xs text-zinc-500">
+            第一张会作为公开网页默认展示图片
+          </span>
+        </div>
+
+        <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+          <input
+            value={manualUrl}
+            onChange={(event) => setManualUrl(event.target.value)}
+            className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-white/40"
+            placeholder="https://...public.blob.vercel-storage.com/..."
+          />
+          <button
+            type="button"
+            onClick={() => {
+              addImages([manualUrl]);
+              setManualUrl("");
+            }}
+            className="rounded-xl border border-white/10 px-4 py-2 text-sm text-zinc-300 transition hover:border-white/30"
+          >
+            添加 URL
+          </button>
+        </div>
+
+        {uploading || progress > 0 ? (
+          <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+            <div
+              className="h-full rounded-full bg-white transition-all"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        ) : null}
+
+        {message ? <p className="text-xs text-zinc-400">{message}</p> : null}
+
+        <div className="grid gap-2">
+          {images.map((image, index) => (
+            <div
+              key={`${image}-${index}`}
+              draggable
+              onDragStart={() => setDragIndex(index)}
+              onDragOver={(event) => event.preventDefault()}
+              onDrop={() => {
+                if (dragIndex === null || dragIndex === index) {
+                  setDragIndex(null);
+                  return;
+                }
+
+                onChange(moveImage(images, dragIndex, index));
+                setDragIndex(null);
+              }}
+              onDragEnd={() => setDragIndex(null)}
+              className={cn(
+                "grid gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-2 transition sm:grid-cols-[84px_1fr_auto]",
+                dragIndex === index ? "border-white/40 bg-white/10" : ""
+              )}
+            >
+              <img
+                src={image}
+                alt=""
+                className="aspect-[4/3] w-full rounded-xl bg-black object-cover sm:w-[84px]"
+              />
+              <div className="min-w-0">
+                <div className="mb-1 flex flex-wrap gap-2">
+                  <span className="rounded-full border border-white/10 px-2 py-0.5 text-xs text-zinc-400">
+                    #{index + 1}
+                  </span>
+                  {index === 0 ? (
+                    <span className="rounded-full border border-amber-300/50 px-2 py-0.5 text-xs text-amber-200">
+                      默认展示
+                    </span>
+                  ) : null}
+                </div>
+                <p className="break-all text-xs leading-5 text-zinc-500">{image}</p>
+              </div>
+              <div className="flex flex-wrap gap-2 sm:flex-col">
+                <button
+                  type="button"
+                  disabled={index === 0}
+                  onClick={() => onChange(moveImage(images, index, index - 1))}
+                  className="rounded-full border border-white/10 px-3 py-1 text-xs text-zinc-300 disabled:opacity-30"
+                >
+                  上移
+                </button>
+                <button
+                  type="button"
+                  disabled={index === images.length - 1}
+                  onClick={() => onChange(moveImage(images, index, index + 1))}
+                  className="rounded-full border border-white/10 px-3 py-1 text-xs text-zinc-300 disabled:opacity-30"
+                >
+                  下移
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onChange(images.filter((_, imageIndex) => imageIndex !== index))}
+                  className="rounded-full border border-red-400/30 px-3 py-1 text-xs text-red-200"
+                >
+                  删除
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {images.length === 0 ? (
+          <p className="rounded-2xl border border-white/10 p-4 text-sm text-zinc-500">
+            暂无图片。上传或添加 URL 后可以拖拽调整顺序。
+          </p>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 export function GalleryManager() {
   const [items, setItems] = useState<AdminGalleryItem[]>([]);
   const [activeItem, setActiveItem] = useState<AdminGalleryItem | null>(null);
@@ -79,6 +291,7 @@ export function GalleryManager() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [message, setMessage] = useState("");
   const [slugTouched, setSlugTouched] = useState(false);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
   const {
     register,
     handleSubmit,
@@ -114,9 +327,16 @@ export function GalleryManager() {
     }
   }, [activeItem, setValue, slugTouched, title]);
 
+  useEffect(() => {
+    if (type === "image") {
+      setValue("src", imageUrls[0] ?? "");
+    }
+  }, [imageUrls, setValue, type]);
+
   function editItem(item: AdminGalleryItem) {
     setActiveItem(item);
     setSlugTouched(true);
+    setImageUrls(item.type === "image" ? cleanImageUrls(item.images) : []);
     reset(itemToForm(item));
     setMessage("");
   }
@@ -124,6 +344,7 @@ export function GalleryManager() {
   function newItem() {
     setActiveItem(null);
     setSlugTouched(false);
+    setImageUrls([]);
     reset(defaultValues);
     setMessage("");
   }
@@ -134,11 +355,16 @@ export function GalleryManager() {
   }
 
   async function onSubmit(values: GalleryForm) {
+    const images = values.type === "image"
+      ? cleanImageUrls(imageUrls.length > 0 ? imageUrls : [values.src])
+      : [];
+    const primarySrc = values.type === "image" ? images[0] ?? values.src : values.src;
     const payload = {
       title: values.title,
       slug: values.slug || slugify(values.title) || `work-${Date.now()}`,
       type: values.type,
-      src: values.src,
+      src: primarySrc,
+      images,
       thumbnail: values.thumbnail,
       date: values.date,
       description: values.description,
@@ -315,6 +541,12 @@ export function GalleryManager() {
                   <span>{galleryCategoryLabels[item.category]}</span>
                   <span>/</span>
                   <span>{item.type}</span>
+                  {item.type === "image" && item.images.length > 1 ? (
+                    <>
+                      <span>/</span>
+                      <span>{item.images.length} 张</span>
+                    </>
+                  ) : null}
                 </div>
                 <div className="flex gap-2">
                   <button
@@ -399,12 +631,16 @@ export function GalleryManager() {
               className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-white/40"
             />
           </div>
-          <UploadField
-            label={type === "video" ? uiText.admin.videoFile : uiText.admin.imageFile}
-            kind={type === "video" ? "video" : "image"}
-            value={src}
-            onChange={(url) => setValue("src", url)}
-          />
+          {type === "image" ? (
+            <ImageSetEditor images={imageUrls} onChange={setImageUrls} />
+          ) : (
+            <UploadField
+              label={uiText.admin.videoFile}
+              kind="video"
+              value={src}
+              onChange={(url) => setValue("src", url)}
+            />
+          )}
           {type === "video" ? (
             <UploadField
               label={uiText.admin.videoCover}

@@ -20,6 +20,8 @@ export function GalleryExplorer({ items }: GalleryExplorerProps) {
     useState<GalleryCategory | typeof allCategory>(allCategory);
   const [preview, setPreview] = useState<GalleryItem | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [previewImageIndex, setPreviewImageIndex] = useState(0);
+  const [imageDirection, setImageDirection] = useState<"next" | "previous">("next");
   const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null);
   const closeTimerRef = useRef<number | null>(null);
   const modalVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -43,8 +45,24 @@ export function GalleryExplorer({ items }: GalleryExplorerProps) {
     }
 
     setPreview(item);
+    setPreviewImageIndex(0);
+    setImageDirection("next");
     window.requestAnimationFrame(() => setIsPreviewOpen(true));
   }, []);
+
+  const showPreviewImage = useCallback(
+    (nextIndex: number) => {
+      if (!preview || preview.type !== "image") {
+        return;
+      }
+
+      const images = preview.images?.length ? preview.images : [preview.src];
+      const boundedIndex = (nextIndex + images.length) % images.length;
+      setImageDirection(nextIndex > previewImageIndex ? "next" : "previous");
+      setPreviewImageIndex(boundedIndex);
+    },
+    [preview, previewImageIndex]
+  );
 
   const stopModalVideo = useCallback(() => {
     const video = modalVideoRef.current;
@@ -110,6 +128,14 @@ export function GalleryExplorer({ items }: GalleryExplorerProps) {
     };
   }, [stopModalVideo]);
 
+  const previewImages =
+    preview?.type === "image"
+      ? preview.images?.length
+        ? preview.images
+        : [preview.src]
+      : [];
+  const activePreviewImage = previewImages[previewImageIndex] ?? preview?.src ?? "";
+
   const previewLightbox =
     preview && portalRoot
       ? createPortal(
@@ -139,12 +165,60 @@ export function GalleryExplorer({ items }: GalleryExplorerProps) {
                   onClick={(event) => event.stopPropagation()}
                 />
               ) : (
-                <img
-                  src={preview.src}
-                  alt={preview.title}
-                  className="gallery-lightbox__media w-full object-contain"
-                />
+                <div className="relative">
+                  <img
+                    key={activePreviewImage}
+                    src={activePreviewImage}
+                    alt={preview.title}
+                    data-direction={imageDirection}
+                    className="gallery-lightbox__media gallery-lightbox__image w-full object-contain"
+                  />
+                  {previewImages.length > 1 ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => showPreviewImage(previewImageIndex - 1)}
+                        className="absolute left-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-archive-line bg-archive-paper2/90 text-xl text-archive-ink shadow-sm transition hover:border-archive-ink"
+                        aria-label="上一张"
+                      >
+                        ‹
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => showPreviewImage(previewImageIndex + 1)}
+                        className="absolute right-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-archive-line bg-archive-paper2/90 text-xl text-archive-ink shadow-sm transition hover:border-archive-ink"
+                        aria-label="下一张"
+                      >
+                        ›
+                      </button>
+                    </>
+                  ) : null}
+                </div>
               )}
+              {previewImages.length > 1 ? (
+                <div className="flex shrink-0 gap-2 overflow-x-auto border-t border-archive-line px-3 py-2">
+                  {previewImages.map((image, index) => (
+                    <button
+                      key={`${image}-${index}`}
+                      type="button"
+                      onClick={() => showPreviewImage(index)}
+                      className={cn(
+                        "h-14 w-20 shrink-0 overflow-hidden rounded-xl border transition",
+                        index === previewImageIndex
+                          ? "border-archive-ink"
+                          : "border-archive-line opacity-70 hover:opacity-100"
+                      )}
+                      aria-label={`查看第 ${index + 1} 张`}
+                    >
+                      <img
+                        src={image}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              ) : null}
               <div className="flex shrink-0 flex-col gap-3 border-t border-archive-line p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
                 <div className="min-w-0">
                   <h2 className="break-words font-serif text-xl font-semibold text-archive-ink sm:text-2xl">
@@ -153,6 +227,11 @@ export function GalleryExplorer({ items }: GalleryExplorerProps) {
                   <p className="mt-1 break-words text-sm text-archive-muted">
                     {preview.description}
                   </p>
+                  {previewImages.length > 1 ? (
+                    <p className="mt-2 text-xs text-archive-muted">
+                      {previewImageIndex + 1} / {previewImages.length}
+                    </p>
+                  ) : null}
                 </div>
                 <button
                   type="button"
@@ -191,6 +270,38 @@ export function GalleryExplorer({ items }: GalleryExplorerProps) {
                 max-height: min(72vh, calc(100dvh - 10.5rem));
               }
 
+              .gallery-lightbox__image {
+                animation: gallery-image-next 240ms ease both;
+              }
+
+              .gallery-lightbox__image[data-direction="previous"] {
+                animation-name: gallery-image-previous;
+              }
+
+              @keyframes gallery-image-next {
+                from {
+                  opacity: 0;
+                  transform: translateX(18px) scale(0.99);
+                }
+
+                to {
+                  opacity: 1;
+                  transform: translateX(0) scale(1);
+                }
+              }
+
+              @keyframes gallery-image-previous {
+                from {
+                  opacity: 0;
+                  transform: translateX(-18px) scale(0.99);
+                }
+
+                to {
+                  opacity: 1;
+                  transform: translateX(0) scale(1);
+                }
+              }
+
               @media (max-width: 640px) {
                 .gallery-lightbox__media {
                   max-height: calc(100dvh - 12.5rem);
@@ -198,11 +309,13 @@ export function GalleryExplorer({ items }: GalleryExplorerProps) {
               }
 
               @media (prefers-reduced-motion: reduce) {
-                .gallery-lightbox,
-                .gallery-lightbox__panel {
-                  transition: none;
-                }
+              .gallery-lightbox,
+              .gallery-lightbox__panel,
+              .gallery-lightbox__image {
+                transition: none;
+                animation: none;
               }
+            }
             `}</style>
           </div>,
           portalRoot

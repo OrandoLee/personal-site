@@ -11,6 +11,7 @@ import {
 import {
   dateInputToDate,
   serializeGalleryItem,
+  stringifyGalleryImages,
   stringifyTags
 } from "@/lib/content-serializers";
 import { prisma } from "@/lib/db";
@@ -57,7 +58,10 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       data: {
         ...parsed.data,
         date: parsed.data.date ? dateInputToDate(parsed.data.date) : undefined,
-        tags: parsed.data.tags ? stringifyTags(parsed.data.tags) : undefined
+        tags: parsed.data.tags ? stringifyTags(parsed.data.tags) : undefined,
+        images: parsed.data.images
+          ? stringifyGalleryImages(parsed.data.images)
+          : undefined
       }
     });
 

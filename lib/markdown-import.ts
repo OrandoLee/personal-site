@@ -1,4 +1,5 @@
 import matter from "gray-matter";
+import { normalizeArticleCategory } from "@/lib/article-categories";
 import { slugify } from "@/lib/slug";
 
 export type ImportedMarkdownArticle = {
@@ -166,10 +167,9 @@ export function parseMarkdownArticle(source: string, fileName = "article.md") {
     title,
     slug: slugify(slugSource) || `article-${Date.now()}`,
     date: normalizeDate(data.date),
-    category:
-      typeof data.category === "string" && data.category.trim()
-        ? data.category.trim()
-        : "Essay",
+    category: normalizeArticleCategory(
+      typeof data.category === "string" ? data.category.trim() : ""
+    ),
     tags: normalizeTags(data.tags),
     summary,
     cover:

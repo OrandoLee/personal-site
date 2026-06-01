@@ -7,6 +7,7 @@ import { ArticleRenderer } from "@/components/ArticleRenderer";
 import { UploadField } from "@/components/admin/UploadField";
 import type { AdminArticle, ApiResult } from "@/components/admin/types";
 import { uiText } from "@/content/uiText";
+import { articleCategories, normalizeArticleCategory } from "@/lib/article-categories";
 import { slugify } from "@/lib/slug";
 
 type ArticleEditorProps = {
@@ -44,7 +45,7 @@ const defaultValues: ArticleForm = {
   title: "",
   slug: "",
   date: todayInput(),
-  category: "Essay",
+  category: "文章",
   tagsText: "",
   summary: "",
   cover: "",
@@ -65,7 +66,7 @@ function articleToForm(article: AdminArticle): ArticleForm {
     title: article.title,
     slug: article.slug,
     date: article.date,
-    category: article.category,
+    category: normalizeArticleCategory(article.category),
     tagsText: article.tags.join(", "),
     summary: article.summary,
     cover: article.cover ?? "",
@@ -206,11 +207,16 @@ export function ArticleEditor({ articleId }: ArticleEditorProps) {
             type="date"
             className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-white/40"
           />
-          <input
+          <select
             {...register("category", { required: true })}
             className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-white/40"
-            placeholder={uiText.admin.category}
-          />
+          >
+            {articleCategories.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
         </div>
         <input
           {...register("tagsText")}

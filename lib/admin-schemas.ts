@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { uiText } from "@/content/uiText";
+import { articleCategories } from "@/lib/article-categories";
 
 const dateString = z
   .string()
@@ -47,7 +48,9 @@ export const articleSchema = z.object({
     .min(1, uiText.apiMessages.inputSlug)
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, uiText.apiMessages.invalidSlug),
   date: dateString,
-  category: z.string().trim().min(1, uiText.apiMessages.inputCategory),
+  category: z.enum(articleCategories, {
+    errorMap: () => ({ message: uiText.apiMessages.inputCategory })
+  }),
   tags: z.array(z.string().trim().min(1)).default([]),
   summary: z.string().trim().min(1, uiText.apiMessages.inputSummary),
   cover: optionalText,

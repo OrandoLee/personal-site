@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { dateToInput, parseTags } from "@/lib/content-serializers";
-import { uiText } from "@/content/uiText";
+import { normalizeArticleCategory } from "@/lib/article-categories";
 
 export type ArticleMeta = {
   slug: string;
@@ -18,7 +18,7 @@ export type Article = ArticleMeta & {
 };
 
 export function formatArticleCategory(category: string) {
-  return category === "Essay" ? uiText.articles.title : category;
+  return normalizeArticleCategory(category);
 }
 
 export async function getAllArticles() {

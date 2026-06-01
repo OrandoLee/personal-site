@@ -19,6 +19,7 @@ export type GalleryItem = {
   description: string;
   tags: string[];
   category: GalleryCategory;
+  featured?: boolean;
 };
 
 export const galleryCategoryLabels: Record<GalleryCategory | "all", string> = {

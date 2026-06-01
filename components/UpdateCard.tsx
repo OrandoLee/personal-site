@@ -23,6 +23,12 @@ export function UpdateCard({ update, compact = false }: UpdateCardProps) {
       ) : null}
       <div className={compact ? "p-5" : "p-6 sm:p-7"}>
         <div className="mb-5 flex flex-wrap items-center gap-3">
+          {update.featured ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-archive-gold bg-archive-gold/10 px-2.5 py-1 text-xs text-archive-gold">
+              <span aria-hidden="true">★</span>
+              置顶
+            </span>
+          ) : null}
           <span
             className={`inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-xs ${meta.tone}`}
           >

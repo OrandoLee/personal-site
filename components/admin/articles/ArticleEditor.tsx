@@ -23,6 +23,7 @@ type ArticleForm = {
   cover: string;
   content: string;
   published: boolean;
+  featured: boolean;
 };
 
 function todayInput() {
@@ -48,7 +49,8 @@ const defaultValues: ArticleForm = {
   summary: "",
   cover: "",
   content: "",
-  published: false
+  published: false,
+  featured: false
 };
 
 function toTags(tagsText: string) {
@@ -68,7 +70,8 @@ function articleToForm(article: AdminArticle): ArticleForm {
     summary: article.summary,
     cover: article.cover ?? "",
     content: article.content,
-    published: article.published
+    published: article.published,
+    featured: article.featured
   };
 }
 
@@ -136,7 +139,8 @@ export function ArticleEditor({ articleId }: ArticleEditorProps) {
       summary: values.summary,
       cover: values.cover,
       content: values.content,
-      published: values.published
+      published: values.published,
+      featured: values.featured
     };
     const response = await fetch(
       articleId ? `/api/admin/articles/${articleId}` : "/api/admin/articles",
@@ -249,6 +253,10 @@ export function ArticleEditor({ articleId }: ArticleEditorProps) {
         <label className="flex items-center gap-3 text-sm text-zinc-300">
           <input type="checkbox" {...register("published")} />
           {uiText.admin.publishPublic}
+        </label>
+        <label className="flex items-center gap-3 text-sm text-zinc-300">
+          <input type="checkbox" {...register("featured")} />
+          置顶到首页
         </label>
         <div className="flex flex-wrap items-center gap-3">
           {message ? <p className="text-sm text-zinc-400">{message}</p> : null}

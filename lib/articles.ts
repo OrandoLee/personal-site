@@ -10,6 +10,7 @@ export type ArticleMeta = {
   tags: string[];
   summary: string;
   cover?: string;
+  featured?: boolean;
 };
 
 export type Article = ArticleMeta & {
@@ -23,7 +24,7 @@ export function formatArticleCategory(category: string) {
 export async function getAllArticles() {
   const rows = await prisma.article.findMany({
     where: { published: true },
-    orderBy: [{ date: "desc" }, { updatedAt: "desc" }]
+    orderBy: [{ featured: "desc" }, { date: "desc" }, { updatedAt: "desc" }]
   });
 
   return rows.map((row) => ({
@@ -33,7 +34,8 @@ export async function getAllArticles() {
     category: row.category,
     tags: parseTags(row.tags),
     summary: row.summary,
-    cover: row.cover ?? undefined
+    cover: row.cover ?? undefined,
+    featured: row.featured
   }));
 }
 
@@ -72,6 +74,7 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
     tags: parseTags(row.tags),
     summary: row.summary,
     cover: row.cover ?? undefined,
+    featured: row.featured,
     content: row.content
   };
 }

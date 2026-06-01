@@ -37,7 +37,7 @@ export async function GET(request: Request) {
     : {};
   const rows = await prisma.article.findMany({
     where,
-    orderBy: [{ date: "desc" }, { updatedAt: "desc" }]
+    orderBy: [{ featured: "desc" }, { date: "desc" }, { updatedAt: "desc" }]
   });
 
   return okJson(rows.map(serializeArticle));
@@ -65,7 +65,8 @@ export async function POST(request: Request) {
         summary: parsed.data.summary,
         cover: parsed.data.cover,
         content: parsed.data.content,
-        published: parsed.data.published
+        published: parsed.data.published,
+        featured: parsed.data.featured
       }
     });
 

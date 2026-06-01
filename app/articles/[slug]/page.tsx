@@ -47,9 +47,15 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       </Link>
 
       <article>
-        <p className="text-sm text-archive-muted">
-          {formatArticleCategory(article.category)}
-        </p>
+        <div className="flex flex-wrap items-center gap-3 text-sm text-archive-muted">
+          {article.featured ? (
+            <span className="inline-flex items-center gap-1 rounded-full border border-archive-gold bg-archive-gold/10 px-2.5 py-1 text-xs text-archive-gold">
+              <span aria-hidden="true">★</span>
+              置顶
+            </span>
+          ) : null}
+          <span>{formatArticleCategory(article.category)}</span>
+        </div>
         <h1 className="mt-4 font-serif text-5xl font-semibold leading-tight text-archive-ink sm:text-7xl">
           {article.title}
         </h1>

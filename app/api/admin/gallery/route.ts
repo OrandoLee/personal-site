@@ -42,7 +42,7 @@ export async function GET(request: Request) {
   };
   const rows = await prisma.galleryItem.findMany({
     where,
-    orderBy: [{ date: "desc" }, { updatedAt: "desc" }]
+    orderBy: [{ featured: "desc" }, { date: "desc" }, { updatedAt: "desc" }]
   });
 
   return okJson(rows.map(serializeGalleryItem));
@@ -71,7 +71,8 @@ export async function POST(request: Request) {
         description: parsed.data.description,
         tags: stringifyTags(parsed.data.tags),
         category: parsed.data.category,
-        published: parsed.data.published
+        published: parsed.data.published,
+        featured: parsed.data.featured
       }
     });
 

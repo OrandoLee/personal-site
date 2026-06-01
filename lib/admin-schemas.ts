@@ -52,7 +52,8 @@ export const articleSchema = z.object({
   summary: z.string().trim().min(1, uiText.apiMessages.inputSummary),
   cover: optionalText,
   content: z.string().trim().min(1, uiText.apiMessages.inputContent),
-  published: z.boolean().default(false)
+  published: z.boolean().default(false),
+  featured: z.boolean().default(false)
 });
 
 export const gallerySchema = z.object({
@@ -69,7 +70,8 @@ export const gallerySchema = z.object({
   description: z.string().trim().min(1, uiText.apiMessages.inputDescription),
   tags: z.array(z.string().trim().min(1)).default([]),
   category: z.enum(["image", "video", "poster", "animation", "experiment"]),
-  published: z.boolean().default(false)
+  published: z.boolean().default(false),
+  featured: z.boolean().default(false)
 });
 
 export const oraskPatchSchema = z.object({

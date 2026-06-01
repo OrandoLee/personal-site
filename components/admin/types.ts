@@ -31,6 +31,7 @@ export type AdminArticle = {
   cover?: string;
   content: string;
   published: boolean;
+  featured: boolean;
   createdAt: string;
   updatedAt: string;
 };
@@ -47,6 +48,7 @@ export type AdminGalleryItem = {
   tags: string[];
   category: GalleryCategory;
   published: boolean;
+  featured: boolean;
   createdAt: string;
   updatedAt: string;
 };

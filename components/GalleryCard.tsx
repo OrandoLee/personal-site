@@ -49,6 +49,12 @@ export function GalleryCard({
       className="group overflow-hidden rounded-3xl border border-archive-line bg-archive-paper2 transition duration-300 hover:-translate-y-0.5 hover:shadow-archive"
     >
       <div className="relative aspect-[4/5] overflow-hidden border-b border-archive-line bg-archive-paper">
+        {item.featured ? (
+          <span className="absolute left-4 top-4 z-10 inline-flex items-center gap-1 rounded-full border border-archive-gold bg-archive-paper2/90 px-2.5 py-1 text-xs text-archive-gold shadow-sm">
+            <span aria-hidden="true">★</span>
+            置顶
+          </span>
+        ) : null}
         {item.type === "image" ? (
           <button
             type="button"

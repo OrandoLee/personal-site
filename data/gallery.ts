@@ -21,6 +21,7 @@ export type GalleryItem = {
   tags: string[];
   category: GalleryCategory;
   featured?: boolean;
+  showWatermark?: boolean;
 };
 
 export const galleryCategoryLabels: Record<GalleryCategory | "all", string> = {

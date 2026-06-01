@@ -70,6 +70,7 @@ export function GalleryCard({
               src={displaySrc}
               alt={item.title}
               loading={priority ? "eager" : "lazy"}
+              showWatermark={item.showWatermark !== false}
               wrapperClassName="h-full w-full"
               className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
             />

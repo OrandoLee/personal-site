@@ -57,6 +57,11 @@ export function stringifyTags(tags: string[]) {
   );
 }
 
+type GalleryImagesPayload = {
+  urls?: unknown;
+  showWatermark?: unknown;
+};
+
 export function parseGalleryImages(value: string | null | undefined, fallback: string) {
   if (!value) {
     return fallback ? [fallback] : [];
@@ -67,6 +72,15 @@ export function parseGalleryImages(value: string | null | undefined, fallback: s
 
     if (Array.isArray(parsed)) {
       const images = parsed.map((url) => String(url).trim()).filter(Boolean);
+      return images.length > 0 ? images : fallback ? [fallback] : [];
+    }
+
+    if (parsed && typeof parsed === "object") {
+      const payload = parsed as GalleryImagesPayload;
+      const images = Array.isArray(payload.urls)
+        ? payload.urls.map((url) => String(url).trim()).filter(Boolean)
+        : [];
+
       return images.length > 0 ? images : fallback ? [fallback] : [];
     }
   } catch {
@@ -81,10 +95,32 @@ export function parseGalleryImages(value: string | null | undefined, fallback: s
   return fallback ? [fallback] : [];
 }
 
-export function stringifyGalleryImages(images: string[]) {
-  return JSON.stringify(
-    images.map((url) => url.trim()).filter((url) => url.length > 0)
-  );
+export function parseGalleryWatermark(value: string | null | undefined) {
+  if (!value) {
+    return true;
+  }
+
+  try {
+    const parsed = JSON.parse(value);
+
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      return (parsed as GalleryImagesPayload).showWatermark !== false;
+    }
+  } catch {
+    return true;
+  }
+
+  return true;
+}
+
+export function stringifyGalleryImages(
+  images: string[],
+  showWatermark = true
+) {
+  return JSON.stringify({
+    urls: images.map((url) => url.trim()).filter((url) => url.length > 0),
+    showWatermark
+  });
 }
 
 export function serializeDailyUpdate(row: DbDailyUpdate): UpdateItem & {
@@ -150,6 +186,7 @@ export function serializeGalleryItem(row: DbGalleryItem): GalleryItem & {
     category: row.category as GalleryCategory,
     published: row.published,
     featured: row.featured,
+    showWatermark: parseGalleryWatermark(row.images),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString()
   };

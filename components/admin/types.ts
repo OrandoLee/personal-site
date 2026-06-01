@@ -50,6 +50,7 @@ export type AdminGalleryItem = {
   category: GalleryCategory;
   published: boolean;
   featured: boolean;
+  showWatermark: boolean;
   createdAt: string;
   updatedAt: string;
 };

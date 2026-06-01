@@ -10,6 +10,8 @@ import {
 } from "@/lib/api-utils";
 import {
   dateInputToDate,
+  parseGalleryImages,
+  parseGalleryWatermark,
   serializeGalleryItem,
   stringifyGalleryImages,
   stringifyTags
@@ -53,15 +55,38 @@ export async function PATCH(request: Request, { params }: RouteContext) {
   }
 
   try {
+    const {
+      date,
+      images,
+      showWatermark,
+      tags,
+      ...galleryData
+    } = parsed.data;
+    let serializedImages: string | undefined;
+
+    if (images !== undefined || showWatermark !== undefined) {
+      const current = await prisma.galleryItem.findUnique({
+        where: { id: params.id },
+        select: { images: true, src: true }
+      });
+
+      if (!current) {
+        return errorJson(uiText.apiMessages.workMissing, 404);
+      }
+
+      serializedImages = stringifyGalleryImages(
+        images ?? parseGalleryImages(current.images, current.src),
+        showWatermark ?? parseGalleryWatermark(current.images)
+      );
+    }
+
     const row = await prisma.galleryItem.update({
       where: { id: params.id },
       data: {
-        ...parsed.data,
-        date: parsed.data.date ? dateInputToDate(parsed.data.date) : undefined,
-        tags: parsed.data.tags ? stringifyTags(parsed.data.tags) : undefined,
-        images: parsed.data.images
-          ? stringifyGalleryImages(parsed.data.images)
-          : undefined
+        ...galleryData,
+        date: date ? dateInputToDate(date) : undefined,
+        tags: tags ? stringifyTags(tags) : undefined,
+        images: serializedImages
       }
     });
 

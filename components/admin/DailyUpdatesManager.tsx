@@ -86,6 +86,7 @@ export function DailyUpdatesManager() {
                 <th className="py-3 pr-4 font-normal">{uiText.admin.title}</th>
                 <th className="py-3 pr-4 font-normal">{uiText.admin.type}</th>
                 <th className="py-3 pr-4 font-normal">{uiText.admin.date}</th>
+                <th className="py-3 pr-4 font-normal">置顶</th>
                 <th className="py-3 pr-4 font-normal">{uiText.admin.actions}</th>
               </tr>
             </thead>
@@ -97,6 +98,15 @@ export function DailyUpdatesManager() {
                     {updateTypeMeta[item.type].label}
                   </td>
                   <td className="py-4 pr-4 text-zinc-400">{item.date}</td>
+                  <td className="py-4 pr-4 text-zinc-400">
+                    {item.featured ? (
+                      <span className="rounded-full border border-amber-300/50 px-2 py-1 text-xs text-amber-200">
+                        ★
+                      </span>
+                    ) : (
+                      <span className="text-zinc-600">-</span>
+                    )}
+                  </td>
                   <td className="py-4 pr-4">
                     {item.link ? (
                       <Link

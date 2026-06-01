@@ -24,6 +24,7 @@ type GalleryForm = {
   tagsText: string;
   category: GalleryCategory;
   published: boolean;
+  featured: boolean;
 };
 
 const defaultValues: GalleryForm = {
@@ -36,7 +37,8 @@ const defaultValues: GalleryForm = {
   description: "",
   tagsText: "",
   category: "image",
-  published: false
+  published: false,
+  featured: false
 };
 
 const categories: GalleryCategory[] = [
@@ -65,7 +67,8 @@ function itemToForm(item: AdminGalleryItem): GalleryForm {
     description: item.description,
     tagsText: item.tags.join(", "),
     category: item.category,
-    published: item.published
+    published: item.published,
+    featured: item.featured
   };
 }
 
@@ -141,7 +144,8 @@ export function GalleryManager() {
       description: values.description,
       tags: toTags(values.tagsText),
       category: values.category,
-      published: values.published
+      published: values.published,
+      featured: values.featured
     };
     const endpoint = activeItem
       ? `/api/admin/gallery/${activeItem.id}`
@@ -182,6 +186,15 @@ export function GalleryManager() {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ published: !item.published })
+    });
+    await loadItems(search, categoryFilter);
+  }
+
+  async function toggleFeatured(item: AdminGalleryItem) {
+    await fetch(`/api/admin/gallery/${item.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ featured: !item.featured })
     });
     await loadItems(search, categoryFilter);
   }
@@ -281,6 +294,18 @@ export function GalleryManager() {
                     )}
                   >
                     {item.published ? uiText.admin.published : uiText.admin.draft}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => toggleFeatured(item)}
+                    className={cn(
+                      "rounded-full border px-3 py-1 text-xs",
+                      item.featured
+                        ? "border-amber-300/50 text-amber-200"
+                        : "border-white/10 text-zinc-500"
+                    )}
+                  >
+                    ★ 置顶
                   </button>
                 </div>
                 <p className="text-sm leading-6 text-zinc-400">{item.description}</p>
@@ -418,6 +443,10 @@ export function GalleryManager() {
           <label className="flex items-center gap-3 text-sm text-zinc-300">
             <input type="checkbox" {...register("published")} />
             {uiText.admin.publishPublic}
+          </label>
+          <label className="flex items-center gap-3 text-sm text-zinc-300">
+            <input type="checkbox" {...register("featured")} />
+            置顶到首页
           </label>
           <button
             disabled={isSubmitting}

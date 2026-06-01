@@ -7,6 +7,7 @@ import type { UpdateItem, UpdateType } from "@/data/updates";
 
 type AutoUpdateSource = UpdateItem & {
   updatedAt: Date;
+  featuredRank: number;
 };
 
 function galleryUpdateType(type: string): UpdateType {
@@ -24,6 +25,7 @@ export async function getPublicUpdates() {
         slug: true,
         summary: true,
         cover: true,
+        featured: true,
         updatedAt: true
       }
     }),
@@ -38,6 +40,7 @@ export async function getPublicUpdates() {
         src: true,
         thumbnail: true,
         description: true,
+        featured: true,
         updatedAt: true
       }
     })
@@ -52,6 +55,8 @@ export async function getPublicUpdates() {
       description: article.summary,
       cover: article.cover ?? undefined,
       link: `/articles/${article.slug}`,
+      featured: article.featured,
+      featuredRank: article.featured ? 1 : 0,
       updatedAt: article.updatedAt
     })),
     ...galleryItems.map((item) => ({
@@ -62,19 +67,27 @@ export async function getPublicUpdates() {
       description: item.description,
       cover: item.thumbnail ?? (item.type === "image" ? item.src : undefined),
       link: `/gallery#${item.slug}`,
+      featured: item.featured,
+      featuredRank: item.featured ? 1 : 0,
       updatedAt: item.updatedAt
     }))
   ];
 
   return updates
-    .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
-    .map(({ updatedAt: _updatedAt, ...update }) => update);
+    .sort((a, b) => {
+      if (a.featuredRank !== b.featuredRank) {
+        return b.featuredRank - a.featuredRank;
+      }
+
+      return b.updatedAt.getTime() - a.updatedAt.getTime();
+    })
+    .map(({ updatedAt: _updatedAt, featuredRank: _featuredRank, ...update }) => update);
 }
 
 export async function getPublicGalleryItems() {
   const rows = await prisma.galleryItem.findMany({
     where: { published: true },
-    orderBy: [{ date: "desc" }, { updatedAt: "desc" }]
+    orderBy: [{ featured: "desc" }, { date: "desc" }, { updatedAt: "desc" }]
   });
 
   return rows.map(serializeGalleryItem);

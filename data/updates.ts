@@ -10,6 +10,7 @@ export type UpdateItem = {
   description: string;
   cover?: string;
   link?: string;
+  featured?: boolean;
 };
 
 export const updateTypeMeta: Record<

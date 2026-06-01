@@ -28,6 +28,12 @@ export function ArticleCard({ article }: ArticleCardProps) {
         <div className="flex flex-col justify-between gap-5">
           <div>
             <div className="mb-3 flex flex-wrap items-center gap-3 text-sm text-archive-muted">
+              {article.featured ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-archive-gold bg-archive-gold/10 px-2 py-0.5 text-xs text-archive-gold">
+                  <span aria-hidden="true">★</span>
+                  置顶
+                </span>
+              ) : null}
               <time>{formatDate(article.date)}</time>
               <span>/</span>
               <span>{formatArticleCategory(article.category)}</span>

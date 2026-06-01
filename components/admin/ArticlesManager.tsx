@@ -41,6 +41,15 @@ export function ArticlesManager() {
     await loadItems(search);
   }
 
+  async function toggleFeatured(item: AdminArticle) {
+    await fetch(`/api/admin/articles/${item.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ featured: !item.featured })
+    });
+    await loadItems(search);
+  }
+
   return (
     <section className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -87,13 +96,14 @@ export function ArticlesManager() {
       </form>
 
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[760px] text-left text-sm">
+        <table className="w-full min-w-[860px] text-left text-sm">
           <thead className="text-zinc-500">
             <tr className="border-b border-white/10">
               <th className="py-3 pr-4 font-normal">{uiText.admin.title}</th>
               <th className="py-3 pr-4 font-normal">{uiText.admin.category}</th>
               <th className="py-3 pr-4 font-normal">{uiText.admin.date}</th>
               <th className="py-3 pr-4 font-normal">{uiText.admin.status}</th>
+              <th className="py-3 pr-4 font-normal">置顶</th>
               <th className="py-3 pr-4 font-normal">{uiText.admin.actions}</th>
             </tr>
           </thead>
@@ -118,6 +128,20 @@ export function ArticlesManager() {
                     )}
                   >
                     {item.published ? uiText.admin.published : uiText.admin.draft}
+                  </button>
+                </td>
+                <td className="py-4 pr-4">
+                  <button
+                    type="button"
+                    onClick={() => toggleFeatured(item)}
+                    className={cn(
+                      "rounded-full border px-3 py-1 text-xs",
+                      item.featured
+                        ? "border-amber-300/50 text-amber-200"
+                        : "border-white/10 text-zinc-500"
+                    )}
+                  >
+                    ★ 置顶
                   </button>
                 </td>
                 <td className="py-4 pr-4">

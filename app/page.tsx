@@ -107,10 +107,17 @@ export default async function HomePage() {
                 href={update.link ?? "/"}
                 className="group rounded-3xl border border-archive-line bg-archive-paper2 p-5 transition hover:-translate-y-0.5 hover:shadow-archive"
               >
-                <div
-                  className={`mb-8 inline-flex rounded-full border px-2.5 py-1 text-xs ${meta.tone}`}
-                >
-                  {meta.label}
+                <div className="mb-8 flex flex-wrap gap-2">
+                  {update.featured ? (
+                    <span className="inline-flex rounded-full border border-archive-gold bg-archive-gold/10 px-2.5 py-1 text-xs text-archive-gold">
+                      ★ 置顶
+                    </span>
+                  ) : null}
+                  <span
+                    className={`inline-flex rounded-full border px-2.5 py-1 text-xs ${meta.tone}`}
+                  >
+                    {meta.label}
+                  </span>
                 </div>
                 <h3 className="display-serif text-2xl font-semibold text-archive-ink group-hover:text-archive-clay">
                   {update.title}

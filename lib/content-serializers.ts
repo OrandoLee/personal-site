@@ -94,6 +94,7 @@ export function serializeArticle(row: DbArticle): ArticleMeta & {
     cover: row.cover ?? undefined,
     content: row.content,
     published: row.published,
+    featured: row.featured,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString()
   };
@@ -117,6 +118,7 @@ export function serializeGalleryItem(row: DbGalleryItem): GalleryItem & {
     tags: parseTags(row.tags),
     category: row.category as GalleryCategory,
     published: row.published,
+    featured: row.featured,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString()
   };

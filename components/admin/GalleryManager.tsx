@@ -23,7 +23,6 @@ type GalleryForm = {
   date: string;
   description: string;
   tagsText: string;
-  category: GalleryCategory;
   published: boolean;
   featured: boolean;
 };
@@ -37,7 +36,6 @@ const defaultValues: GalleryForm = {
   date: new Date().toISOString().slice(0, 10),
   description: "",
   tagsText: "",
-  category: "image",
   published: false,
   featured: false
 };
@@ -78,7 +76,6 @@ function itemToForm(item: AdminGalleryItem): GalleryForm {
     date: item.date,
     description: item.description,
     tagsText: item.tags.join(", "),
-    category: item.category,
     published: item.published,
     featured: item.featured
   };
@@ -369,7 +366,7 @@ export function GalleryManager() {
       date: values.date,
       description: values.description,
       tags: toTags(values.tagsText),
-      category: values.category,
+      category: values.type === "video" ? "video" : "image",
       published: values.published,
       featured: values.featured
     };
@@ -426,7 +423,7 @@ export function GalleryManager() {
   }
 
   return (
-    <div className="grid gap-6 2xl:grid-cols-[0.95fr_1.05fr]">
+    <div className="grid gap-6 2xl:grid-cols-2">
       <section className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -607,23 +604,13 @@ export function GalleryManager() {
               {uiText.admin.workAnchor}：/gallery#{slug}
             </p>
           ) : null}
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2">
             <select
               {...register("type")}
               className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-white/40"
             >
               <option value="image">{uiText.galleryCategories.image}</option>
               <option value="video">{uiText.galleryCategories.video}</option>
-            </select>
-            <select
-              {...register("category")}
-              className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-white/40"
-            >
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {galleryCategoryLabels[category]}
-                </option>
-              ))}
             </select>
             <input
               {...register("date", { required: true })}

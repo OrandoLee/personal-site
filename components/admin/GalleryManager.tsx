@@ -55,15 +55,15 @@ function toTags(tagsText: string) {
     .filter(Boolean);
 }
 
-function cleanImageUrls(images: string[]) {
-  return images.map((url) => url.trim()).filter(Boolean);
+function cleanMediaUrls(urls: string[]) {
+  return urls.map((url) => url.trim()).filter(Boolean);
 }
 
-function moveImage(images: string[], fromIndex: number, toIndex: number) {
-  const nextImages = [...images];
-  const [movedImage] = nextImages.splice(fromIndex, 1);
-  nextImages.splice(toIndex, 0, movedImage);
-  return nextImages;
+function moveMedia(urls: string[], fromIndex: number, toIndex: number) {
+  const nextUrls = [...urls];
+  const [movedUrl] = nextUrls.splice(fromIndex, 1);
+  nextUrls.splice(toIndex, 0, movedUrl);
+  return nextUrls;
 }
 
 function itemToForm(item: AdminGalleryItem): GalleryForm {
@@ -81,22 +81,32 @@ function itemToForm(item: AdminGalleryItem): GalleryForm {
   };
 }
 
-type ImageSetEditorProps = {
-  images: string[];
-  onChange: (images: string[]) => void;
+type MediaSetEditorProps = {
+  kind: "image" | "video";
+  urls: string[];
+  onChange: (urls: string[]) => void;
 };
 
-function ImageSetEditor({ images, onChange }: ImageSetEditorProps) {
+function MediaSetEditor({ kind, urls, onChange }: MediaSetEditorProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [manualUrl, setManualUrl] = useState("");
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState("");
   const [uploading, setUploading] = useState(false);
+  const isVideo = kind === "video";
+  const label = isVideo ? "视频组视频" : "图组图片";
+  const uploadLabel = isVideo ? "上传多个视频" : "上传多张图片";
+  const displayHint = isVideo
+    ? "第一条会作为公开网页默认播放视频"
+    : "第一张会作为公开网页默认展示图片";
+  const emptyLabel = isVideo
+    ? "暂无视频。上传或添加 URL 后可以拖拽调整顺序。"
+    : "暂无图片。上传或添加 URL 后可以拖拽调整顺序。";
 
-  function addImages(urls: string[]) {
-    const nextImages = cleanImageUrls([...images, ...urls]);
-    onChange(Array.from(new Set(nextImages)));
+  function addUrls(newUrls: string[]) {
+    const nextUrls = cleanMediaUrls([...urls, ...newUrls]);
+    onChange(Array.from(new Set(nextUrls)));
   }
 
   async function uploadFiles(files: File[]) {
@@ -110,6 +120,7 @@ function ImageSetEditor({ images, onChange }: ImageSetEditorProps) {
 
     try {
       const uploadedUrls: string[] = [];
+      const directory = isVideo ? "uploads/videos" : "uploads/images";
 
       for (let index = 0; index < files.length; index += 1) {
         const file = files[index];
@@ -117,11 +128,11 @@ function ImageSetEditor({ images, onChange }: ImageSetEditorProps) {
         const fileName = `${Date.now()}-${crypto.randomUUID()}${
           extension ? `.${extension.toLowerCase()}` : ""
         }`;
-        const blob = await upload(`uploads/images/${fileName}`, file, {
+        const blob = await upload(`${directory}/${fileName}`, file, {
           access: "public",
           contentType: file.type,
           handleUploadUrl: "/api/admin/upload/blob",
-          clientPayload: "image",
+          clientPayload: kind,
           multipart: true,
           onUploadProgress: (event) => {
             const fileBase = (index / files.length) * 100;
@@ -133,7 +144,7 @@ function ImageSetEditor({ images, onChange }: ImageSetEditorProps) {
         uploadedUrls.push(blob.url);
       }
 
-      addImages(uploadedUrls);
+      addUrls(uploadedUrls);
       setProgress(100);
       setMessage(uiText.admin.uploadComplete);
     } catch (error) {
@@ -145,7 +156,7 @@ function ImageSetEditor({ images, onChange }: ImageSetEditorProps) {
 
   return (
     <div className="grid gap-3">
-      <span className="text-sm text-zinc-400">图组图片</span>
+      <span className="text-sm text-zinc-400">{label}</span>
       <div className="grid gap-3 rounded-2xl border border-white/10 bg-black/20 p-3">
         <div className="flex flex-wrap items-center gap-2">
           <button
@@ -154,22 +165,24 @@ function ImageSetEditor({ images, onChange }: ImageSetEditorProps) {
             disabled={uploading}
             className="rounded-full bg-white px-4 py-2 text-xs font-medium text-zinc-950 transition hover:bg-zinc-200 disabled:opacity-60"
           >
-            {uploading ? uiText.admin.statusUploading : "上传多张图片"}
+            {uploading ? uiText.admin.statusUploading : uploadLabel}
           </button>
           <input
             ref={inputRef}
             type="file"
             multiple
-            accept="image/jpeg,image/png,image/webp,image/gif"
+            accept={
+              isVideo
+                ? "video/mp4,video/webm,video/quicktime"
+                : "image/jpeg,image/png,image/webp,image/gif"
+            }
             className="hidden"
             onChange={(event) => {
               void uploadFiles(Array.from(event.target.files ?? []));
               event.currentTarget.value = "";
             }}
           />
-          <span className="text-xs text-zinc-500">
-            第一张会作为公开网页默认展示图片
-          </span>
+          <span className="text-xs text-zinc-500">{displayHint}</span>
         </div>
 
         <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
@@ -182,7 +195,7 @@ function ImageSetEditor({ images, onChange }: ImageSetEditorProps) {
           <button
             type="button"
             onClick={() => {
-              addImages([manualUrl]);
+              addUrls([manualUrl]);
               setManualUrl("");
             }}
             className="rounded-xl border border-white/10 px-4 py-2 text-sm text-zinc-300 transition hover:border-white/30"
@@ -203,9 +216,9 @@ function ImageSetEditor({ images, onChange }: ImageSetEditorProps) {
         {message ? <p className="text-xs text-zinc-400">{message}</p> : null}
 
         <div className="grid gap-2">
-          {images.map((image, index) => (
+          {urls.map((url, index) => (
             <div
-              key={`${image}-${index}`}
+              key={`${url}-${index}`}
               draggable
               onDragStart={() => setDragIndex(index)}
               onDragOver={(event) => event.preventDefault()}
@@ -215,7 +228,7 @@ function ImageSetEditor({ images, onChange }: ImageSetEditorProps) {
                   return;
                 }
 
-                onChange(moveImage(images, dragIndex, index));
+                onChange(moveMedia(urls, dragIndex, index));
                 setDragIndex(null);
               }}
               onDragEnd={() => setDragIndex(null)}
@@ -224,11 +237,21 @@ function ImageSetEditor({ images, onChange }: ImageSetEditorProps) {
                 dragIndex === index ? "border-white/40 bg-white/10" : ""
               )}
             >
-              <img
-                src={image}
-                alt=""
-                className="aspect-[4/3] w-full rounded-xl bg-black object-cover sm:w-[84px]"
-              />
+              {isVideo ? (
+                <video
+                  src={url}
+                  muted
+                  playsInline
+                  preload="metadata"
+                  className="aspect-[4/3] w-full rounded-xl bg-black object-cover sm:w-[84px]"
+                />
+              ) : (
+                <img
+                  src={url}
+                  alt=""
+                  className="aspect-[4/3] w-full rounded-xl bg-black object-cover sm:w-[84px]"
+                />
+              )}
               <div className="min-w-0">
                 <div className="mb-1 flex flex-wrap gap-2">
                   <span className="rounded-full border border-white/10 px-2 py-0.5 text-xs text-zinc-400">
@@ -240,28 +263,30 @@ function ImageSetEditor({ images, onChange }: ImageSetEditorProps) {
                     </span>
                   ) : null}
                 </div>
-                <p className="break-all text-xs leading-5 text-zinc-500">{image}</p>
+                <p className="break-all text-xs leading-5 text-zinc-500">{url}</p>
               </div>
               <div className="flex flex-wrap gap-2 sm:flex-col">
                 <button
                   type="button"
                   disabled={index === 0}
-                  onClick={() => onChange(moveImage(images, index, index - 1))}
+                  onClick={() => onChange(moveMedia(urls, index, index - 1))}
                   className="rounded-full border border-white/10 px-3 py-1 text-xs text-zinc-300 disabled:opacity-30"
                 >
                   上移
                 </button>
                 <button
                   type="button"
-                  disabled={index === images.length - 1}
-                  onClick={() => onChange(moveImage(images, index, index + 1))}
+                  disabled={index === urls.length - 1}
+                  onClick={() => onChange(moveMedia(urls, index, index + 1))}
                   className="rounded-full border border-white/10 px-3 py-1 text-xs text-zinc-300 disabled:opacity-30"
                 >
                   下移
                 </button>
                 <button
                   type="button"
-                  onClick={() => onChange(images.filter((_, imageIndex) => imageIndex !== index))}
+                  onClick={() =>
+                    onChange(urls.filter((_, urlIndex) => urlIndex !== index))
+                  }
                   className="rounded-full border border-red-400/30 px-3 py-1 text-xs text-red-200"
                 >
                   删除
@@ -271,9 +296,9 @@ function ImageSetEditor({ images, onChange }: ImageSetEditorProps) {
           ))}
         </div>
 
-        {images.length === 0 ? (
+        {urls.length === 0 ? (
           <p className="rounded-2xl border border-white/10 p-4 text-sm text-zinc-500">
-            暂无图片。上传或添加 URL 后可以拖拽调整顺序。
+            {emptyLabel}
           </p>
         ) : null}
       </div>
@@ -288,7 +313,8 @@ export function GalleryManager() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [message, setMessage] = useState("");
   const [slugTouched, setSlugTouched] = useState(false);
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [mediaUrls, setMediaUrls] = useState<string[]>([]);
+  const previousTypeRef = useRef<GalleryItemType>(defaultValues.type);
   const {
     register,
     handleSubmit,
@@ -325,15 +351,24 @@ export function GalleryManager() {
   }, [activeItem, setValue, slugTouched, title]);
 
   useEffect(() => {
-    if (type === "image") {
-      setValue("src", imageUrls[0] ?? "");
+    setValue("src", mediaUrls[0] ?? "");
+  }, [mediaUrls, setValue]);
+
+  useEffect(() => {
+    if (previousTypeRef.current === type) {
+      return;
     }
-  }, [imageUrls, setValue, type]);
+
+    previousTypeRef.current = type;
+    setMediaUrls([]);
+    setValue("src", "");
+  }, [setValue, type]);
 
   function editItem(item: AdminGalleryItem) {
     setActiveItem(item);
     setSlugTouched(true);
-    setImageUrls(item.type === "image" ? cleanImageUrls(item.images) : []);
+    previousTypeRef.current = item.type;
+    setMediaUrls(cleanMediaUrls(item.images?.length ? item.images : [item.src]));
     reset(itemToForm(item));
     setMessage("");
   }
@@ -341,7 +376,8 @@ export function GalleryManager() {
   function newItem() {
     setActiveItem(null);
     setSlugTouched(false);
-    setImageUrls([]);
+    previousTypeRef.current = defaultValues.type;
+    setMediaUrls([]);
     reset(defaultValues);
     setMessage("");
   }
@@ -352,16 +388,14 @@ export function GalleryManager() {
   }
 
   async function onSubmit(values: GalleryForm) {
-    const images = values.type === "image"
-      ? cleanImageUrls(imageUrls.length > 0 ? imageUrls : [values.src])
-      : [];
-    const primarySrc = values.type === "image" ? images[0] ?? values.src : values.src;
+    const media = cleanMediaUrls(mediaUrls.length > 0 ? mediaUrls : [values.src]);
+    const primarySrc = media[0] ?? values.src;
     const payload = {
       title: values.title,
       slug: values.slug || slugify(values.title) || `work-${Date.now()}`,
       type: values.type,
       src: primarySrc,
-      images,
+      images: media,
       thumbnail: values.thumbnail,
       date: values.date,
       description: values.description,
@@ -477,93 +511,99 @@ export function GalleryManager() {
         </form>
 
         <div className="grid gap-3">
-          {items.map((item) => (
-            <article
-              key={item.id}
-              className="grid gap-4 rounded-3xl border border-white/10 bg-black/20 p-4 sm:grid-cols-[120px_1fr]"
-            >
-              <div className="aspect-[4/3] overflow-hidden rounded-2xl bg-black">
-                {item.type === "video" ? (
-                  <video
-                    src={item.src}
-                    poster={item.thumbnail}
-                    muted
-                    playsInline
-                    preload="metadata"
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <img
-                    src={item.src}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                )}
-              </div>
-              <div className="grid gap-3">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <h3 className="text-lg font-medium text-white">{item.title}</h3>
-                    <p className="mt-1 text-xs text-zinc-500">/{item.slug}</p>
+          {items.map((item) => {
+            const displaySrc = item.images?.[0] ?? item.src;
+
+            return (
+              <article
+                key={item.id}
+                className="grid gap-4 rounded-3xl border border-white/10 bg-black/20 p-4 sm:grid-cols-[120px_1fr]"
+              >
+                <div className="aspect-[4/3] overflow-hidden rounded-2xl bg-black">
+                  {item.type === "video" ? (
+                    <video
+                      src={displaySrc}
+                      poster={item.thumbnail}
+                      muted
+                      playsInline
+                      preload="metadata"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <img
+                      src={displaySrc}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                  )}
+                </div>
+                <div className="grid gap-3">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <h3 className="text-lg font-medium text-white">{item.title}</h3>
+                      <p className="mt-1 text-xs text-zinc-500">/{item.slug}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => togglePublished(item)}
+                      className={cn(
+                        "rounded-full border px-3 py-1 text-xs",
+                        item.published
+                          ? "border-emerald-400/30 text-emerald-300"
+                          : "border-white/10 text-zinc-500"
+                      )}
+                    >
+                      {item.published ? uiText.admin.published : uiText.admin.draft}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => toggleFeatured(item)}
+                      className={cn(
+                        "rounded-full border px-3 py-1 text-xs",
+                        item.featured
+                          ? "border-amber-300/50 text-amber-200"
+                          : "border-white/10 text-zinc-500"
+                      )}
+                    >
+                      置顶
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => togglePublished(item)}
-                    className={cn(
-                      "rounded-full border px-3 py-1 text-xs",
-                      item.published
-                        ? "border-emerald-400/30 text-emerald-300"
-                        : "border-white/10 text-zinc-500"
-                    )}
-                  >
-                    {item.published ? uiText.admin.published : uiText.admin.draft}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => toggleFeatured(item)}
-                    className={cn(
-                      "rounded-full border px-3 py-1 text-xs",
-                      item.featured
-                        ? "border-amber-300/50 text-amber-200"
-                        : "border-white/10 text-zinc-500"
-                    )}
-                  >
-                    ★ 置顶
-                  </button>
+                  <p className="text-sm leading-6 text-zinc-400">
+                    {item.description}
+                  </p>
+                  <div className="flex flex-wrap gap-2 text-xs text-zinc-500">
+                    <span>{item.date}</span>
+                    <span>/</span>
+                    <span>{galleryCategoryLabels[item.category]}</span>
+                    <span>/</span>
+                    <span>{item.type}</span>
+                    {item.images.length > 1 ? (
+                      <>
+                        <span>/</span>
+                        <span>{item.images.length} 个</span>
+                      </>
+                    ) : null}
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => editItem(item)}
+                      className="rounded-full border border-white/10 px-3 py-1 text-xs text-zinc-300"
+                    >
+                      {uiText.admin.edit}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => deleteItem(item)}
+                      className="rounded-full border border-red-400/30 px-3 py-1 text-xs text-red-200"
+                    >
+                      {uiText.admin.delete}
+                    </button>
+                  </div>
                 </div>
-                <p className="text-sm leading-6 text-zinc-400">{item.description}</p>
-                <div className="flex flex-wrap gap-2 text-xs text-zinc-500">
-                  <span>{item.date}</span>
-                  <span>/</span>
-                  <span>{galleryCategoryLabels[item.category]}</span>
-                  <span>/</span>
-                  <span>{item.type}</span>
-                  {item.type === "image" && item.images.length > 1 ? (
-                    <>
-                      <span>/</span>
-                      <span>{item.images.length} 张</span>
-                    </>
-                  ) : null}
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => editItem(item)}
-                    className="rounded-full border border-white/10 px-3 py-1 text-xs text-zinc-300"
-                  >
-                    {uiText.admin.edit}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => deleteItem(item)}
-                    className="rounded-full border border-red-400/30 px-3 py-1 text-xs text-red-200"
-                  >
-                    {uiText.admin.delete}
-                  </button>
-                </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
           {items.length === 0 ? (
             <p className="py-8 text-center text-sm text-zinc-500">
               {uiText.admin.noWorks}
@@ -618,16 +658,7 @@ export function GalleryManager() {
               className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-white/40"
             />
           </div>
-          {type === "image" ? (
-            <ImageSetEditor images={imageUrls} onChange={setImageUrls} />
-          ) : (
-            <UploadField
-              label={uiText.admin.videoFile}
-              kind="video"
-              value={src}
-              onChange={(url) => setValue("src", url)}
-            />
-          )}
+          <MediaSetEditor kind={type} urls={mediaUrls} onChange={setMediaUrls} />
           {type === "video" ? (
             <UploadField
               label={uiText.admin.videoCover}

@@ -50,14 +50,14 @@ export function GalleryExplorer({ items }: GalleryExplorerProps) {
     window.requestAnimationFrame(() => setIsPreviewOpen(true));
   }, []);
 
-  const showPreviewImage = useCallback(
+  const showPreviewMedia = useCallback(
     (nextIndex: number) => {
-      if (!preview || preview.type !== "image") {
+      if (!preview) {
         return;
       }
 
-      const images = preview.images?.length ? preview.images : [preview.src];
-      const boundedIndex = (nextIndex + images.length) % images.length;
+      const media = preview.images?.length ? preview.images : [preview.src];
+      const boundedIndex = (nextIndex + media.length) % media.length;
       setImageDirection(nextIndex > previewImageIndex ? "next" : "previous");
       setPreviewImageIndex(boundedIndex);
     },
@@ -128,13 +128,12 @@ export function GalleryExplorer({ items }: GalleryExplorerProps) {
     };
   }, [stopModalVideo]);
 
-  const previewImages =
-    preview?.type === "image"
-      ? preview.images?.length
-        ? preview.images
-        : [preview.src]
-      : [];
-  const activePreviewImage = previewImages[previewImageIndex] ?? preview?.src ?? "";
+  const previewMedia = preview
+    ? preview.images?.length
+      ? preview.images
+      : [preview.src]
+    : [];
+  const activePreviewMedia = previewMedia[previewImageIndex] ?? preview?.src ?? "";
 
   const previewLightbox =
     preview && portalRoot
@@ -153,9 +152,9 @@ export function GalleryExplorer({ items }: GalleryExplorerProps) {
             >
               {preview.type === "video" ? (
                 <video
-                  key={preview.src}
+                  key={activePreviewMedia}
                   ref={modalVideoRef}
-                  src={preview.src}
+                  src={activePreviewMedia}
                   poster={preview.thumbnail}
                   className="gallery-lightbox__media w-full rounded-xl bg-black object-contain sm:rounded-2xl"
                   controls
@@ -167,17 +166,17 @@ export function GalleryExplorer({ items }: GalleryExplorerProps) {
               ) : (
                 <div className="relative">
                   <img
-                    key={activePreviewImage}
-                    src={activePreviewImage}
+                    key={activePreviewMedia}
+                    src={activePreviewMedia}
                     alt={preview.title}
                     data-direction={imageDirection}
                     className="gallery-lightbox__media gallery-lightbox__image w-full object-contain"
                   />
-                  {previewImages.length > 1 ? (
+                  {previewMedia.length > 1 ? (
                     <>
                       <button
                         type="button"
-                        onClick={() => showPreviewImage(previewImageIndex - 1)}
+                        onClick={() => showPreviewMedia(previewImageIndex - 1)}
                         className="absolute left-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-archive-line bg-archive-paper2/90 text-xl text-archive-ink shadow-sm transition hover:border-archive-ink"
                         aria-label="上一张"
                       >
@@ -185,7 +184,7 @@ export function GalleryExplorer({ items }: GalleryExplorerProps) {
                       </button>
                       <button
                         type="button"
-                        onClick={() => showPreviewImage(previewImageIndex + 1)}
+                        onClick={() => showPreviewMedia(previewImageIndex + 1)}
                         className="absolute right-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-archive-line bg-archive-paper2/90 text-xl text-archive-ink shadow-sm transition hover:border-archive-ink"
                         aria-label="下一张"
                       >
@@ -195,13 +194,13 @@ export function GalleryExplorer({ items }: GalleryExplorerProps) {
                   ) : null}
                 </div>
               )}
-              {previewImages.length > 1 ? (
+              {previewMedia.length > 1 ? (
                 <div className="flex shrink-0 gap-2 overflow-x-auto border-t border-archive-line px-3 py-2">
-                  {previewImages.map((image, index) => (
+                  {previewMedia.map((media, index) => (
                     <button
-                      key={`${image}-${index}`}
+                      key={`${media}-${index}`}
                       type="button"
-                      onClick={() => showPreviewImage(index)}
+                      onClick={() => showPreviewMedia(index)}
                       className={cn(
                         "h-14 w-20 shrink-0 overflow-hidden rounded-xl border transition",
                         index === previewImageIndex
@@ -210,11 +209,21 @@ export function GalleryExplorer({ items }: GalleryExplorerProps) {
                       )}
                       aria-label={`查看第 ${index + 1} 张`}
                     >
-                      <img
-                        src={image}
-                        alt=""
-                        className="h-full w-full object-cover"
-                      />
+                      {preview.type === "video" ? (
+                        <video
+                          src={media}
+                          muted
+                          playsInline
+                          preload="metadata"
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <img
+                          src={media}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      )}
                     </button>
                   ))}
                 </div>
@@ -227,9 +236,9 @@ export function GalleryExplorer({ items }: GalleryExplorerProps) {
                   <p className="mt-1 break-words text-sm text-archive-muted">
                     {preview.description}
                   </p>
-                  {previewImages.length > 1 ? (
+                  {previewMedia.length > 1 ? (
                     <p className="mt-2 text-xs text-archive-muted">
-                      {previewImageIndex + 1} / {previewImages.length}
+                      {previewImageIndex + 1} / {previewMedia.length}
                     </p>
                   ) : null}
                 </div>

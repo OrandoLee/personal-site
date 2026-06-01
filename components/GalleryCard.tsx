@@ -20,6 +20,7 @@ export function GalleryCard({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const displaySrc = item.images?.[0] ?? item.src;
   const imageCount = item.type === "image" ? item.images?.length ?? 1 : 0;
+  const videoCount = item.type === "video" ? item.images?.length ?? 1 : 0;
 
   useEffect(() => {
     if (item.type !== "video" || !videoRef.current) {
@@ -86,7 +87,7 @@ export function GalleryCard({
             <video
               ref={videoRef}
               className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
-              src={item.src}
+              src={displaySrc}
               poster={item.thumbnail}
               muted
               loop
@@ -97,6 +98,11 @@ export function GalleryCard({
                 void event.currentTarget.play().catch(() => undefined);
               }}
             />
+            {videoCount > 1 ? (
+              <span className="absolute bottom-4 right-4 rounded-full border border-archive-line bg-archive-paper2/90 px-2.5 py-1 text-xs text-archive-muted shadow-sm">
+                {videoCount} 个
+              </span>
+            ) : null}
           </button>
         )}
       </div>

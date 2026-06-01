@@ -5,6 +5,7 @@ import { uiText } from "@/content/uiText";
 import type { GalleryItem } from "@/data/gallery";
 import { galleryCategoryLabels } from "@/data/gallery";
 import { formatDate } from "@/lib/format";
+import { WatermarkedImage } from "@/components/WatermarkedImage";
 
 type GalleryCardProps = {
   item: GalleryItem;
@@ -62,17 +63,18 @@ export function GalleryCard({
           <button
             type="button"
             onClick={() => onPreview(item)}
-            className="h-full w-full cursor-zoom-in"
+            className="relative h-full w-full cursor-zoom-in"
             aria-label={`${uiText.gallery.previewAriaPrefix}${item.title}`}
           >
-            <img
+            <WatermarkedImage
               src={displaySrc}
               alt={item.title}
               loading={priority ? "eager" : "lazy"}
+              wrapperClassName="h-full w-full"
               className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
             />
             {imageCount > 1 ? (
-              <span className="absolute bottom-4 right-4 rounded-full border border-archive-line bg-archive-paper2/90 px-2.5 py-1 text-xs text-archive-muted shadow-sm">
+              <span className="absolute bottom-4 left-4 z-10 rounded-full border border-archive-line bg-archive-paper2/90 px-2.5 py-1 text-xs text-archive-muted shadow-sm">
                 {imageCount} 张
               </span>
             ) : null}

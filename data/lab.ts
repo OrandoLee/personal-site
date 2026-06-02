@@ -40,7 +40,7 @@ export type LabProject = {
 export const labCategories: LabCategory[] = [
   {
     key: "all",
-    label: "全部实验",
+    label: "全部项目",
     href: "/lab",
     description: "查看所有公开实验"
   },
@@ -70,7 +70,7 @@ export const labCategories: LabCategory[] = [
   },
   {
     key: "other",
-    label: "其他实验",
+    label: "其他项目",
     href: "/lab?category=other",
     description: "尚未归类的实验项目"
   }

@@ -38,11 +38,11 @@ export default async function LabPage({ searchParams }: LabPageProps) {
       <section className="mb-12 rounded-3xl bg-archive-paper2/70 p-7 sm:p-10">
         <p className="text-sm text-archive-muted">LAB</p>
         <h1 className="mt-4 max-w-[680px] font-serif text-5xl font-semibold leading-tight text-archive-ink sm:text-7xl">
-          实验、系统，以及尚未完成的项目。
+          实验性作品、系统，以及尚未完成的项目。
         </h1>
         <div className="mt-7 max-w-2xl text-base leading-8 text-archive-muted">
           <p>
-            这里存放一些尚未完全命名的技术实验、交互系统、视觉系统和小游戏原型。
+            这里存放一些尚未完全命名的实验性项目、交互系统、视觉系统和小游戏原型。
           </p>
           <p>它们不一定完整，但都指向某种正在形成的东西。</p>
         </div>
@@ -77,7 +77,7 @@ export default async function LabPage({ searchParams }: LabPageProps) {
       </section>
 
       <p className="mt-12 border-t border-archive-line pt-6 text-sm text-archive-muted">
-        更多实验正在组装中。
+        更多项目正在准备中。
       </p>
     </main>
   );

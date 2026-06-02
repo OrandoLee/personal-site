@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { uiText } from "@/content/uiText";
 import { articleCategories } from "@/lib/article-categories";
+import { labCategoryKeys } from "@/data/lab";
 
 const dateString = z
   .string()
@@ -79,6 +80,29 @@ export const gallerySchema = z.object({
   showWatermark: z.boolean().optional()
 });
 
+export const labProjectSchema = z.object({
+  title: z.string().trim().min(1, uiText.apiMessages.inputTitle),
+  slug: z
+    .string()
+    .trim()
+    .min(1, uiText.apiMessages.inputSlug)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, uiText.apiMessages.invalidSlug),
+  summary: z.string().trim().min(1, uiText.apiMessages.inputSummary),
+  description: optionalText,
+  categoryKey: z.enum(labCategoryKeys, {
+    errorMap: () => ({ message: uiText.apiMessages.inputCategory })
+  }),
+  category: z.string().trim().min(1, uiText.apiMessages.inputCategory),
+  status: z.string().trim().min(1, "请输入状态"),
+  coverImage: optionalText,
+  openMode: z.enum(["embed", "external", "internal"]),
+  embedUrl: optionalText,
+  externalUrl: optionalText,
+  internalPath: optionalText,
+  sortOrder: z.coerce.number().int().default(100),
+  isPublished: z.boolean().default(false)
+});
+
 export const oraskPatchSchema = z.object({
   read: z.boolean()
 });
@@ -86,3 +110,4 @@ export const oraskPatchSchema = z.object({
 export type DailyUpdateInput = z.infer<typeof dailyUpdateSchema>;
 export type ArticleInput = z.infer<typeof articleSchema>;
 export type GalleryInput = z.infer<typeof gallerySchema>;
+export type LabProjectInput = z.infer<typeof labProjectSchema>;

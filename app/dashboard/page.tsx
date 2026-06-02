@@ -7,11 +7,20 @@ import { getPublicUpdates } from "@/lib/public-content";
 
 export const dynamic = "force-dynamic";
 
+async function getLabProjectCount() {
+  try {
+    return await prisma.labProject.count();
+  } catch {
+    return 0;
+  }
+}
+
 export default async function DashboardPage() {
   const [
     publishedArticles,
     draftArticles,
     galleryCount,
+    labCount,
     unreadOraskCount,
     autoUpdates,
     recentMessages
@@ -19,6 +28,7 @@ export default async function DashboardPage() {
     prisma.article.count({ where: { published: true } }),
     prisma.article.count({ where: { published: false } }),
     prisma.galleryItem.count(),
+    getLabProjectCount(),
     prisma.oraskMessage.count({ where: { read: false } }),
     getPublicUpdates(),
     prisma.oraskMessage.findMany({
@@ -31,6 +41,7 @@ export default async function DashboardPage() {
     { label: uiText.admin.publishedArticles, value: publishedArticles, href: "/dashboard/articles" },
     { label: uiText.admin.draftArticles, value: draftArticles, href: "/dashboard/articles" },
     { label: uiText.admin.galleryWorks, value: galleryCount, href: "/dashboard/gallery" },
+    { label: "LAB 项目", value: labCount, href: "/dashboard/lab" },
     { label: uiText.admin.dailyUpdates, value: autoUpdates.length, href: "/dashboard/updates" },
     { label: uiText.admin.unreadOrask, value: unreadOraskCount, href: "/dashboard/orask" }
   ];

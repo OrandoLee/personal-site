@@ -2,6 +2,7 @@ import type {
   Article as DbArticle,
   DailyUpdate as DbDailyUpdate,
   GalleryItem as DbGalleryItem,
+  LabProject as DbLabProject,
   OraskMessage as DbOraskMessage
 } from "@prisma/client";
 import type { UpdateItem, UpdateType } from "@/data/updates";
@@ -11,6 +12,11 @@ import type {
   GalleryItemType
 } from "@/data/gallery";
 import type { ArticleMeta } from "@/lib/articles";
+import type {
+  LabCategoryKey,
+  LabOpenMode,
+  LabProject
+} from "@/data/lab";
 
 const dateFormatter = new Intl.DateTimeFormat("zh-CN", {
   timeZone: "Asia/Shanghai",
@@ -187,6 +193,28 @@ export function serializeGalleryItem(row: DbGalleryItem): GalleryItem & {
     published: row.published,
     featured: row.featured,
     showWatermark: parseGalleryWatermark(row.images),
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString()
+  };
+}
+
+export function serializeLabProject(row: DbLabProject): LabProject {
+  return {
+    id: row.id,
+    title: row.title,
+    slug: row.slug,
+    summary: row.summary,
+    description: row.description ?? undefined,
+    categoryKey: row.categoryKey as LabCategoryKey,
+    category: row.category,
+    status: row.status,
+    coverImage: row.coverImage ?? undefined,
+    openMode: row.openMode as LabOpenMode,
+    embedUrl: row.embedUrl ?? undefined,
+    externalUrl: row.externalUrl ?? undefined,
+    internalPath: row.internalPath ?? undefined,
+    sortOrder: row.sortOrder,
+    isPublished: row.isPublished,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString()
   };

@@ -1,5 +1,6 @@
 import type { UpdateType } from "@/data/updates";
 import type { GalleryCategory, GalleryItemType } from "@/data/gallery";
+import type { LabCategoryKey, LabOpenMode } from "@/data/lab";
 
 export type ApiResult<T> = {
   ok?: boolean;
@@ -51,6 +52,26 @@ export type AdminGalleryItem = {
   published: boolean;
   featured: boolean;
   showWatermark: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminLabProject = {
+  id: string;
+  title: string;
+  slug: string;
+  summary: string;
+  description?: string;
+  categoryKey: LabCategoryKey;
+  category: string;
+  status: string;
+  coverImage?: string;
+  openMode: LabOpenMode;
+  embedUrl?: string;
+  externalUrl?: string;
+  internalPath?: string;
+  sortOrder: number;
+  isPublished: boolean;
   createdAt: string;
   updatedAt: string;
 };

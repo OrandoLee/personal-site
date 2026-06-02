@@ -66,6 +66,30 @@ model GalleryItem {
   @@index([type, date])
 }
 
+model LabProject {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  summary     String
+  description String?
+  categoryKey String
+  category    String
+  status      String
+  coverImage  String?
+  openMode    String
+  embedUrl    String?
+  externalUrl String?
+  internalPath String?
+  sortOrder   Int      @default(100)
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isPublished, sortOrder])
+  @@index([categoryKey, isPublished])
+  @@index([updatedAt])
+}
+
 model OraskMessage {
   id        String   @id @default(cuid())
   name      String

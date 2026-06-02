@@ -224,11 +224,51 @@ async function seedOraskMessage() {
   });
 }
 
+async function seedLabProjects() {
+  await prisma.labProject.upsert({
+    where: { slug: "numeric-tower" },
+    update: {
+      title: "数值高塔",
+      summary:
+        "一个由攻击、防御、暴击、吸血和随机奖励构成的极简数值爬塔实验。",
+      description: null,
+      categoryKey: "game",
+      category: "游戏原型",
+      status: "原型",
+      coverImage: null,
+      openMode: "embed",
+      embedUrl: null,
+      externalUrl: null,
+      internalPath: null,
+      sortOrder: 1,
+      isPublished: true
+    },
+    create: {
+      title: "数值高塔",
+      slug: "numeric-tower",
+      summary:
+        "一个由攻击、防御、暴击、吸血和随机奖励构成的极简数值爬塔实验。",
+      description: null,
+      categoryKey: "game",
+      category: "游戏原型",
+      status: "原型",
+      coverImage: null,
+      openMode: "embed",
+      embedUrl: null,
+      externalUrl: null,
+      internalPath: null,
+      sortOrder: 1,
+      isPublished: true
+    }
+  });
+}
+
 async function main() {
   await seedDailyUpdates();
   await seedArticles();
   await seedGalleryItems();
   await seedOraskMessage();
+  await seedLabProjects();
 }
 
 main()

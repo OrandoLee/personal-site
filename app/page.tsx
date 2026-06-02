@@ -21,10 +21,27 @@ function todayInput() {
   return `${year}-${month}-${day}`;
 }
 
+function getLatestUpdateDate(updates: { date: string }[]) {
+  return updates.reduce<string | undefined>((latestDate, update) => {
+    if (!latestDate || update.date > latestDate) {
+      return update.date;
+    }
+
+    return latestDate;
+  }, undefined);
+}
+
 export default async function HomePage() {
   const sortedUpdates = await getPublicUpdates();
   const today = todayInput();
   const todayUpdates = sortedUpdates.filter((update) => update.date === today);
+  const currentUpdateDate =
+    todayUpdates.length > 0 ? today : getLatestUpdateDate(sortedUpdates);
+  const currentUpdates = currentUpdateDate
+    ? sortedUpdates.filter((update) => update.date === currentUpdateDate)
+    : [];
+  const currentUpdateLabel =
+    currentUpdateDate === today ? uiText.home.todayUpdates : "最近更新";
   const latestUpdates = sortedUpdates.slice(0, 4);
 
   return (
@@ -58,9 +75,9 @@ export default async function HomePage() {
 
         <div className="max-w-2xl">
           <div className="rounded-3xl bg-archive-paper2/75 p-7">
-            <p className="mb-4 text-sm text-archive-muted">{uiText.home.todayUpdates}</p>
+            <p className="mb-4 text-sm text-archive-muted">{currentUpdateLabel}</p>
             <h2 className="text-4xl font-semibold text-archive-ink">
-              <AnimatedDate date={today} />
+              <AnimatedDate date={currentUpdateDate} />
             </h2>
           </div>
         </div>
@@ -69,7 +86,7 @@ export default async function HomePage() {
       <section className="mx-auto w-full max-w-6xl px-4 pb-20 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm text-archive-muted">{uiText.home.todayUpdates}</p>
+            <p className="text-sm text-archive-muted">{currentUpdateLabel}</p>
             <h2 className="mt-2 font-serif text-4xl font-semibold text-archive-ink">
               {uiText.home.newArchiveTitle}
             </h2>
@@ -77,8 +94,8 @@ export default async function HomePage() {
         </div>
 
         <div className="grid gap-5 lg:grid-cols-3">
-          {todayUpdates.length > 0 ? (
-            todayUpdates.map((update) => (
+          {currentUpdates.length > 0 ? (
+            currentUpdates.map((update) => (
               <UpdateCard key={update.id} update={update} />
             ))
           ) : (

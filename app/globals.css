@@ -190,6 +190,17 @@ video {
   background: rgb(var(--archive-paper));
 }
 
+.lab-title-line {
+  display: inline;
+}
+
+@media (min-width: 1024px) {
+  .lab-title-line {
+    display: block;
+    white-space: nowrap;
+  }
+}
+
 .wordmark {
   filter: contrast(1.05);
 }

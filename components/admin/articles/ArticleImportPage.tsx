@@ -6,7 +6,7 @@ import type { AdminArticle, ApiResult } from "@/components/admin/types";
 import { uiText } from "@/content/uiText";
 import { cn } from "@/lib/classNames";
 
-type ImportMode = "markdown" | "zip";
+type ImportMode = "markdown" | "zip" | "docx";
 type ImportStatus = "idle" | "uploading" | "processing" | "success" | "error";
 
 type ImportCardProps = {
@@ -179,17 +179,22 @@ export function ArticleImportPage() {
   const [activeMode, setActiveMode] = useState<ImportMode>("markdown");
   const [markdownStatus, setMarkdownStatus] = useState<ImportStatus>("idle");
   const [zipStatus, setZipStatus] = useState<ImportStatus>("idle");
+  const [docxStatus, setDocxStatus] = useState<ImportStatus>("idle");
   const [markdownMessage, setMarkdownMessage] = useState("");
   const [zipMessage, setZipMessage] = useState("");
+  const [docxMessage, setDocxMessage] = useState("");
   const [article, setArticle] = useState<AdminArticle | null>(null);
 
   function setModeStatus(mode: ImportMode, status: ImportStatus, message = "") {
     if (mode === "markdown") {
       setMarkdownStatus(status);
       setMarkdownMessage(message);
-    } else {
+    } else if (mode === "zip") {
       setZipStatus(status);
       setZipMessage(message);
+    } else {
+      setDocxStatus(status);
+      setDocxMessage(message);
     }
   }
 
@@ -216,7 +221,8 @@ export function ArticleImportPage() {
       <div className="flex w-fit rounded-full border border-white/10 bg-black/20 p-1">
         {[
           ["markdown", uiText.admin.markdownFile],
-          ["zip", uiText.admin.markdownZip]
+          ["zip", uiText.admin.markdownZip],
+          ["docx", "DOCX 文档"]
         ].map(([mode, label]) => (
           <button
             key={mode}
@@ -234,7 +240,7 @@ export function ArticleImportPage() {
         ))}
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid gap-5 lg:grid-cols-3">
         <div className={activeMode === "markdown" ? "block" : "hidden lg:block"}>
           <ImportCard
             mode="markdown"
@@ -262,6 +268,20 @@ export function ArticleImportPage() {
             status={zipStatus}
             message={zipMessage}
             onStatusChange={(status, message) => setModeStatus("zip", status, message)}
+            onSuccess={setArticle}
+          />
+        </div>
+
+        <div className={activeMode === "docx" ? "block" : "hidden lg:block"}>
+          <ImportCard
+            mode="docx"
+            title="导入 DOCX 文档"
+            description="适用于直接上传 Word .docx 文档。系统会提取正文、基础格式、表格和图片，并在前台使用分页阅读器展示。"
+            accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            endpoint="/api/admin/articles/import-docx"
+            status={docxStatus}
+            message={docxMessage}
+            onStatusChange={(status, message) => setModeStatus("docx", status, message)}
             onSuccess={setArticle}
           />
         </div>

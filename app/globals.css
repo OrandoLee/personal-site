@@ -568,6 +568,21 @@ video {
   color: rgb(var(--archive-paper2));
 }
 
+.docx-reader {
+  scroll-margin-top: 2rem;
+}
+
+.docx-page {
+  min-height: min(78vh, 860px);
+}
+
+.docx-page-body {
+  width: 100%;
+  max-width: 680px;
+  min-height: min(58vh, 620px);
+  margin: 0 auto;
+}
+
 @media (max-width: 640px) {
   .article-detail-body {
     width: 100%;

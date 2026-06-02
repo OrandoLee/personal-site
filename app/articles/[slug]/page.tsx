@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { DocxArticlePager } from "@/components/DocxArticlePager";
 import { ArticleRenderer } from "@/components/ArticleRenderer";
 import { uiText } from "@/content/uiText";
+import { isDocxArticleContent } from "@/lib/article-content";
 import {
   formatArticleCategory,
   getArticleBySlug
@@ -74,10 +76,14 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           />
         ) : null}
 
-        <ArticleRenderer
-          content={article.content}
-          className="article-detail-body"
-        />
+        {isDocxArticleContent(article.content) ? (
+          <DocxArticlePager content={article.content} />
+        ) : (
+          <ArticleRenderer
+            content={article.content}
+            className="article-detail-body"
+          />
+        )}
       </article>
     </main>
   );

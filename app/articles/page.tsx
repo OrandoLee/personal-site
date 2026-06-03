@@ -33,7 +33,7 @@ export default async function ArticlesPage({ searchParams }: ArticlesPageProps) 
     <main className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
       <section className="mb-12 rounded-3xl bg-archive-paper2/70 p-7 sm:p-10">
         <p className="text-sm text-archive-muted">{uiText.articles.title}</p>
-        <h1 className="mt-4 max-w-[875px] font-serif text-5xl font-semibold leading-tight text-archive-ink sm:text-7xl">
+        <h1 className="mt-4 max-w-[875px] font-serif text-[2.35rem] font-semibold leading-[1.14] text-archive-ink sm:text-7xl sm:leading-tight">
           {uiText.articles.heroTitle}
         </h1>
       </section>

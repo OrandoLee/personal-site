@@ -11,7 +11,16 @@ export const metadata: Metadata = {
     default: uiText.site.metadataTitle,
     template: `%s | ${uiText.site.brand}`
   },
-  description: uiText.site.metadataDescription
+  description: uiText.site.metadataDescription,
+  icons: {
+    icon: [
+      {
+        url: "/favicon.svg?v=2",
+        type: "image/svg+xml"
+      }
+    ],
+    apple: "/apple-touch-icon.png?v=2"
+  }
 };
 
 export default function RootLayout({

@@ -68,7 +68,7 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <h1 className="max-w-[1003px] font-serif text-5xl font-semibold leading-[1.06] text-archive-ink sm:text-7xl lg:text-8xl">
+          <h1 className="max-w-[1003px] font-serif text-[2.35rem] font-semibold leading-[1.12] text-archive-ink sm:text-7xl sm:leading-[1.06] lg:text-8xl">
             {uiText.home.heroTitle}
           </h1>
         </div>

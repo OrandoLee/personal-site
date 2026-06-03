@@ -84,28 +84,6 @@ export const labCategoryLabels = labCategories.reduce(
   {} as Record<LabCategoryFilterKey, string>
 );
 
-export const fallbackLabProjects: LabProject[] = [
-  {
-    id: "lab-numeric-tower",
-    title: "数值高塔",
-    slug: "numeric-tower",
-    summary: "一个由攻击、防御、暴击、吸血和随机奖励构成的极简数值爬塔实验。",
-    description: undefined,
-    categoryKey: "game",
-    category: "游戏原型",
-    status: "原型",
-    coverImage: undefined,
-    openMode: "embed",
-    embedUrl: undefined,
-    externalUrl: undefined,
-    internalPath: undefined,
-    sortOrder: 1,
-    isPublished: true,
-    createdAt: "2026-06-02T00:00:00.000Z",
-    updatedAt: "2026-06-02T00:00:00.000Z"
-  }
-];
-
 export function isLabCategoryKey(value: string): value is LabCategoryKey {
   return labCategoryKeys.includes(value as LabCategoryKey);
 }

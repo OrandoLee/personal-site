@@ -5,7 +5,6 @@ import {
   serializeLabProject
 } from "@/lib/content-serializers";
 import type { UpdateItem, UpdateType } from "@/data/updates";
-import { fallbackLabProjects } from "@/data/lab";
 import {
   defaultCoverKeyForArticleCategory,
   getDefaultCoverMap
@@ -116,43 +115,29 @@ export async function getPublicGalleryItems() {
 }
 
 export async function getPublicLabProjects(category?: string) {
-  try {
-    const rows = await prisma.labProject.findMany({
-      where: {
-        isPublished: true,
-        ...(category && category !== "all" ? { categoryKey: category } : {})
-      },
-      orderBy: [
-        { sortOrder: "asc" },
-        { updatedAt: "desc" },
-        { createdAt: "desc" }
-      ]
-    });
+  const rows = await prisma.labProject.findMany({
+    where: {
+      isPublished: true,
+      ...(category && category !== "all" ? { categoryKey: category } : {})
+    },
+    orderBy: [
+      { sortOrder: "asc" },
+      { updatedAt: "desc" },
+      { createdAt: "desc" }
+    ]
+  });
 
-    return rows.map(serializeLabProject);
-  } catch {
-    return fallbackLabProjects.filter(
-      (project) =>
-        project.isPublished &&
-        (!category || category === "all" || project.categoryKey === category)
-    );
-  }
+  return rows.map(serializeLabProject);
 }
 
 export async function getPublicLabProjectBySlug(slug: string) {
-  try {
-    const row = await prisma.labProject.findUnique({
-      where: { slug }
-    });
+  const row = await prisma.labProject.findUnique({
+    where: { slug }
+  });
 
-    if (!row || !row.isPublished) {
-      return null;
-    }
-
-    return serializeLabProject(row);
-  } catch {
-    return fallbackLabProjects.find(
-      (project) => project.isPublished && project.slug === slug
-    ) ?? null;
+  if (!row || !row.isPublished) {
+    return null;
   }
+
+  return serializeLabProject(row);
 }

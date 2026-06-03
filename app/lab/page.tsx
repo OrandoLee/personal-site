@@ -77,9 +77,32 @@ export default async function LabPage({ searchParams }: LabPageProps) {
         <LabProjectList projects={projects} emptyText={emptyText} />
       </section>
 
-      <p className="mt-12 border-t border-archive-line pt-6 text-sm text-archive-muted">
-        更多项目正在准备中。
-      </p>
+      <section className="mt-12 border-t border-archive-line pt-10">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(320px,420px)]">
+          <p className="text-sm leading-7 text-archive-muted">
+            更多项目正在准备中。
+          </p>
+
+          <div className="grid gap-7">
+            {labCategories
+              .filter((category) => category.key !== "all")
+              .map((category) => (
+                <Link
+                  key={category.key}
+                  href={category.href}
+                  className="group block"
+                >
+                  <h2 className="text-2xl font-medium leading-tight text-archive-ink transition group-hover:text-archive-clay">
+                    {category.label}
+                  </h2>
+                  <p className="mt-3 text-lg leading-8 text-archive-muted">
+                    {category.description}
+                  </p>
+                </Link>
+              ))}
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

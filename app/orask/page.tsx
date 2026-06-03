@@ -16,7 +16,7 @@ export default function OraskPage() {
           >
             {uiText.orask.eyebrow}
           </p>
-          <h1 className="mt-4 max-w-[468px] font-serif text-5xl font-semibold leading-tight text-archive-ink sm:text-7xl">
+          <h1 className="mt-4 max-w-[468px] font-serif text-[2.35rem] font-semibold leading-[1.14] text-archive-ink sm:text-7xl sm:leading-tight">
             {uiText.orask.title}
           </h1>
           <p className="mt-7 max-w-xl text-base leading-8 text-archive-muted">

@@ -42,7 +42,7 @@ export const labCategories: LabCategory[] = [
     key: "all",
     label: "全部项目",
     href: "/lab",
-    description: "查看所有公开实验"
+    description: "查看所有公开项目"
   },
   {
     key: "game",

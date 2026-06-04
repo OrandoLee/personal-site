@@ -242,6 +242,20 @@ video {
   -webkit-mask-size: contain;
 }
 
+.orask-title-logo {
+  width: min(100%, 440px);
+  aspect-ratio: 1035 / 335;
+  background-color: currentColor;
+  mask-image: url("/orask-title.svg");
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
+  -webkit-mask-image: url("/orask-title.svg");
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+}
+
 .nav-logo-button[data-logo-motion="home"]:hover .nav-logo,
 .nav-logo-button[data-logo-motion="home"]:focus-visible .nav-logo {
   animation: nav-logo-home 480ms cubic-bezier(0.22, 1, 0.36, 1);

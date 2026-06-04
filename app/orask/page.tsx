@@ -10,12 +10,11 @@ export default function OraskPage() {
     <main className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
       <section className="grid gap-10 lg:grid-cols-[minmax(0,var(--orask-copy-width))_minmax(0,1fr)] lg:[--orask-copy-width:560px]">
         <div className="lg:sticky lg:top-28 lg:self-start">
-          <p
-            className=" -mr-[3px] -mt-px ml-px pb-8 pl-1 pt-[11px] text-[87px] leading-none text-archive-muted"
-            style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
-          >
-            {uiText.orask.eyebrow}
-          </p>
+          <div
+            className="orask-title-logo mb-8 text-archive-muted"
+            role="img"
+            aria-label={uiText.orask.eyebrow}
+          />
           <h1 className="mt-4 max-w-[468px] font-serif text-[2.35rem] font-semibold leading-[1.14] text-archive-ink sm:text-7xl sm:leading-tight">
             {uiText.orask.title}
           </h1>

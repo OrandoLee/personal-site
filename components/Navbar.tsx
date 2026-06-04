@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  type CSSProperties,
+  useCallback,
+  useEffect,
+  useRef,
+  useState
+} from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LogoWordmark } from "@/components/LogoWordmark";
@@ -9,11 +15,42 @@ import { labCategories, type LabProject } from "@/data/lab";
 import { cn } from "@/lib/classNames";
 
 const navItems = [
-  { href: "/", label: uiText.nav.home },
-  { href: "/articles", label: uiText.nav.articles },
-  { href: "/gallery", label: uiText.nav.gallery },
-  { href: "/lab", label: "LAB", hasLabMenu: true },
-  { href: "/orask", label: uiText.nav.orask }
+  {
+    href: "/",
+    label: uiText.nav.home,
+    logo: "/nav-logos/home.svg",
+    logoClassName: "w-[3.7rem] sm:w-[4.25rem]",
+    motion: "home"
+  },
+  {
+    href: "/articles",
+    label: uiText.nav.articles,
+    logo: "/nav-logos/article.svg",
+    logoClassName: "w-[4.7rem] sm:w-[5.4rem]",
+    motion: "article"
+  },
+  {
+    href: "/gallery",
+    label: uiText.nav.gallery,
+    logo: "/nav-logos/IMAGE.svg",
+    logoClassName: "w-[4.15rem] sm:w-[4.8rem]",
+    motion: "gallery"
+  },
+  {
+    href: "/lab",
+    label: "LAB",
+    logo: "/nav-logos/lab.svg",
+    logoClassName: "w-[2.5rem] sm:w-[2.85rem]",
+    motion: "lab",
+    hasLabMenu: true
+  },
+  {
+    href: "/orask",
+    label: uiText.nav.orask,
+    logo: "/nav-logos/orask.svg",
+    logoClassName: "w-[3.65rem] sm:w-[4.2rem]",
+    motion: "orask"
+  }
 ];
 
 function isActive(pathname: string, href: string) {
@@ -108,6 +145,7 @@ export function Navbar() {
               <Link
                 key={item.href}
                 href={item.href}
+                aria-label={item.label}
                 aria-haspopup={item.hasLabMenu ? "menu" : undefined}
                 aria-expanded={item.hasLabMenu ? labMenuOpen : undefined}
                 onMouseEnter={() => {
@@ -136,14 +174,24 @@ export function Navbar() {
                     setLabMenuOpen((open) => !open);
                   }
                 }}
+                data-logo-motion={item.motion}
                 className={cn(
-                  "whitespace-nowrap rounded-full px-3 py-2 text-sm transition sm:px-4",
+                  "nav-logo-button group relative flex h-10 shrink-0 items-center justify-center overflow-hidden rounded-full px-3 transition duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-archive-ink focus-visible:ring-offset-2 focus-visible:ring-offset-archive-paper sm:h-11 sm:px-4",
                   labActive
                     ? "bg-archive-ink text-archive-paper2"
                     : "text-archive-muted hover:bg-archive-paper2 hover:text-archive-ink"
                 )}
               >
-                {item.label}
+                <span
+                  aria-hidden="true"
+                  className={cn("nav-logo h-[0.82rem] sm:h-[0.92rem]", item.logoClassName)}
+                  style={
+                    {
+                      "--nav-logo": `url("${item.logo}")`
+                    } as CSSProperties
+                  }
+                />
+                <span className="sr-only">{item.label}</span>
               </Link>
             );
           })}

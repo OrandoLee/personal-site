@@ -205,6 +205,151 @@ video {
   filter: contrast(1.05);
 }
 
+.nav-logo-button::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    105deg,
+    transparent 32%,
+    rgb(var(--archive-ink) / 0.1) 50%,
+    transparent 68%
+  );
+  content: "";
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-120%);
+}
+
+.nav-logo-button:hover::after,
+.nav-logo-button:focus-visible::after {
+  animation: nav-logo-shine 680ms ease-out both;
+}
+
+.nav-logo {
+  display: block;
+  flex: none;
+  background-color: currentColor;
+  mask-image: var(--nav-logo);
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
+  transform-origin: center;
+  will-change: transform;
+  -webkit-mask-image: var(--nav-logo);
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+}
+
+.nav-logo-button[data-logo-motion="home"]:hover .nav-logo,
+.nav-logo-button[data-logo-motion="home"]:focus-visible .nav-logo {
+  animation: nav-logo-home 480ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.nav-logo-button[data-logo-motion="article"]:hover .nav-logo,
+.nav-logo-button[data-logo-motion="article"]:focus-visible .nav-logo {
+  animation: nav-logo-article 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.nav-logo-button[data-logo-motion="gallery"]:hover .nav-logo,
+.nav-logo-button[data-logo-motion="gallery"]:focus-visible .nav-logo {
+  animation: nav-logo-gallery 560ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.nav-logo-button[data-logo-motion="lab"]:hover .nav-logo,
+.nav-logo-button[data-logo-motion="lab"]:focus-visible .nav-logo {
+  animation: nav-logo-lab 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.nav-logo-button[data-logo-motion="orask"]:hover .nav-logo,
+.nav-logo-button[data-logo-motion="orask"]:focus-visible .nav-logo {
+  animation: nav-logo-orask 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes nav-logo-shine {
+  0% {
+    opacity: 0;
+    transform: translateX(-120%);
+  }
+
+  35% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(120%);
+  }
+}
+
+@keyframes nav-logo-home {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+
+  45% {
+    transform: translateY(-3px) scale(1.04);
+  }
+}
+
+@keyframes nav-logo-article {
+  0%,
+  100% {
+    transform: perspective(180px) rotateX(0);
+  }
+
+  45% {
+    transform: perspective(180px) rotateX(-18deg) translateY(-1px);
+  }
+}
+
+@keyframes nav-logo-gallery {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  42% {
+    transform: scaleX(1.07) scaleY(0.96);
+  }
+
+  68% {
+    transform: scaleX(0.99) scaleY(1.03);
+  }
+}
+
+@keyframes nav-logo-lab {
+  0%,
+  100% {
+    transform: rotate(0) scale(1);
+  }
+
+  35% {
+    transform: rotate(-4deg) scale(1.06);
+  }
+
+  68% {
+    transform: rotate(2deg) scale(1.02);
+  }
+}
+
+@keyframes nav-logo-orask {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  35% {
+    transform: translateX(3px);
+  }
+
+  68% {
+    transform: translateX(-1px);
+  }
+}
+
 .page-transition {
   animation: page-enter 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
   transform-origin: 50% 24px;
@@ -241,6 +386,13 @@ video {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .nav-logo-button:hover::after,
+  .nav-logo-button:focus-visible::after,
+  .nav-logo-button:hover .nav-logo,
+  .nav-logo-button:focus-visible .nav-logo {
+    animation: none;
+  }
+
   .page-transition {
     animation: none;
   }

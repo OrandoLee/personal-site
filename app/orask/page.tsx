@@ -14,7 +14,10 @@ export default function OraskPage() {
             className="orask-title-logo mb-8 text-archive-muted"
             role="img"
             aria-label={uiText.orask.eyebrow}
-          />
+          >
+            <span className="orask-title-logo__main" aria-hidden="true" />
+            <span className="orask-title-logo__tagline" aria-hidden="true" />
+          </div>
           <h1 className="mt-4 max-w-[468px] font-serif text-[2.35rem] font-semibold leading-[1.14] text-archive-ink sm:text-7xl sm:leading-tight">
             {uiText.orask.title}
           </h1>

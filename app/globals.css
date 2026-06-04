@@ -261,9 +261,9 @@ video {
 .orask-title-logo__main {
   width: 100%;
   aspect-ratio: 1035 / 335;
-  animation: orask-title-main-enter 720ms cubic-bezier(0.22, 1, 0.36, 1)
-    both;
   mask-image: url("/orask-title-main.svg");
+  opacity: 0;
+  transform: translateY(14px);
   -webkit-mask-image: url("/orask-title-main.svg");
 }
 
@@ -272,10 +272,20 @@ video {
   aspect-ratio: 585 / 110;
   margin-top: 0.5rem;
   margin-left: 3.9%;
-  animation: orask-title-tagline-enter 620ms cubic-bezier(0.22, 1, 0.36, 1)
-    420ms both;
   mask-image: url("/orask-title-tagline.svg");
+  opacity: 0;
+  transform: translateX(-12px);
   -webkit-mask-image: url("/orask-title-tagline.svg");
+}
+
+.orask-title-logo--visible .orask-title-logo__main {
+  animation: orask-title-main-enter 720ms cubic-bezier(0.22, 1, 0.36, 1)
+    both;
+}
+
+.orask-title-logo--visible .orask-title-logo__tagline {
+  animation: orask-title-tagline-enter 620ms cubic-bezier(0.22, 1, 0.36, 1)
+    520ms both;
 }
 
 @keyframes orask-title-main-enter {
@@ -449,6 +459,8 @@ video {
   .orask-title-logo__main,
   .orask-title-logo__tagline {
     animation: none;
+    opacity: 1;
+    transform: none;
   }
 
   .nav-logo-button:hover::after,

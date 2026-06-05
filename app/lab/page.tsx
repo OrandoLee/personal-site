@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LabProjectList } from "@/components/LabProjectList";
+import { SectionTitleLogo } from "@/components/SectionTitleLogo";
 import {
   getLabCategory,
   isLabCategoryKey,
@@ -36,7 +37,16 @@ export default async function LabPage({ searchParams }: LabPageProps) {
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
       <section className="mb-12 rounded-3xl bg-archive-paper2/70 p-7 sm:p-10">
-        <p className="text-sm text-archive-muted">LAB</p>
+        <SectionTitleLogo
+          ariaLabel="Lab. Born from thought, built for value."
+          className="mb-7"
+          main="/section-logos/lab-main.svg"
+          mainRatio="630 / 290"
+          maxWidth="350px"
+          tagline="/section-logos/lab-tagline.svg"
+          taglineRatio="1670 / 340"
+          taglineWidth="95%"
+        />
         <h1 className="lab-title mt-4 max-w-none font-serif text-5xl font-semibold leading-tight text-archive-ink sm:text-7xl">
           <span className="lab-title-line">实验性作品、系统，</span>
           <span className="lab-title-line">以及尚未完成的项目。</span>

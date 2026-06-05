@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArticleCard } from "@/components/ArticleCard";
+import { SectionTitleLogo } from "@/components/SectionTitleLogo";
 import { uiText } from "@/content/uiText";
 import {
   formatArticleCategory,
@@ -32,7 +33,16 @@ export default async function ArticlesPage({ searchParams }: ArticlesPageProps) 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
       <section className="mb-12 rounded-3xl bg-archive-paper2/70 p-7 sm:p-10">
-        <p className="text-sm text-archive-muted">{uiText.articles.title}</p>
+        <SectionTitleLogo
+          ariaLabel="Documents. Keep thinking."
+          className="mb-7"
+          main="/section-logos/article-main.svg"
+          mainRatio="960 / 150"
+          maxWidth="520px"
+          tagline="/section-logos/article-tagline.svg"
+          taglineRatio="1660 / 90"
+          taglineWidth="82%"
+        />
         <h1 className="mt-4 max-w-[875px] font-serif text-[2.35rem] font-semibold leading-[1.14] text-archive-ink sm:text-7xl sm:leading-tight">
           {uiText.articles.heroTitle}
         </h1>

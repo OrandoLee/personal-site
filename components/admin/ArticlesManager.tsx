@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { UploadField } from "@/components/admin/UploadField";
 import type {
   AdminArticle,
   AdminArticleCollection,
@@ -22,6 +23,12 @@ type CollectionForm = {
   articleIds: string[];
 };
 
+type BatchUploadItem = {
+  name: string;
+  status: "pending" | "uploading" | "success" | "error";
+  message?: string;
+};
+
 const emptyCollectionForm: CollectionForm = {
   title: "",
   slug: "",
@@ -31,6 +38,9 @@ const emptyCollectionForm: CollectionForm = {
   featured: false,
   articleIds: []
 };
+
+const batchAccept =
+  ".md,.markdown,.zip,.docx,text/markdown,application/zip,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
 function articleMatches(article: AdminArticle, query: string) {
   if (!query) {
@@ -43,12 +53,50 @@ function articleMatches(article: AdminArticle, query: string) {
     .includes(query);
 }
 
+function endpointForFile(file: File) {
+  const name = file.name.toLowerCase();
+
+  if (name.endsWith(".docx")) {
+    return "/api/admin/articles/import-docx";
+  }
+
+  if (name.endsWith(".zip")) {
+    return "/api/admin/articles/import-zip";
+  }
+
+  if (name.endsWith(".md") || name.endsWith(".markdown")) {
+    return "/api/admin/articles/import-markdown";
+  }
+
+  return null;
+}
+
+function collectionPayload(form: CollectionForm) {
+  const fallbackTitle = "未命名合集";
+  const title = form.title.trim() || fallbackTitle;
+  const slug = form.slug.trim() || slugify(title) || `collection-${Date.now()}`;
+  const summary = form.summary.trim() || "批量上传创建的文档合集。";
+
+  return {
+    title,
+    slug,
+    summary,
+    cover: form.cover || null,
+    published: form.published,
+    featured: form.featured,
+    articleIds: form.articleIds
+  };
+}
+
 export function ArticleCollectionsManager() {
+  const batchInputRef = useRef<HTMLInputElement | null>(null);
   const [articles, setArticles] = useState<AdminArticle[]>([]);
   const [collections, setCollections] = useState<AdminArticleCollection[]>([]);
   const [form, setForm] = useState<CollectionForm>(emptyCollectionForm);
   const [message, setMessage] = useState("");
   const [articleSearch, setArticleSearch] = useState("");
+  const [batchItems, setBatchItems] = useState<BatchUploadItem[]>([]);
+  const [batchUploading, setBatchUploading] = useState(false);
 
   const loadData = useCallback(async () => {
     const [articleResponse, collectionResponse] = await Promise.all([
@@ -91,6 +139,7 @@ export function ArticleCollectionsManager() {
     setForm(emptyCollectionForm);
     setMessage("");
     setArticleSearch("");
+    setBatchItems([]);
   }
 
   function editCollection(collection: AdminArticleCollection) {
@@ -106,6 +155,7 @@ export function ArticleCollectionsManager() {
     });
     setMessage("");
     setArticleSearch("");
+    setBatchItems([]);
   }
 
   function addArticle(articleId: string) {
@@ -123,12 +173,8 @@ export function ArticleCollectionsManager() {
     }));
   }
 
-  async function saveCollection() {
-    const payload = {
-      ...form,
-      slug: form.slug || slugify(form.title) || `collection-${Date.now()}`,
-      cover: form.cover || null
-    };
+  async function persistCollection(options: { resetAfterSave: boolean }) {
+    const payload = collectionPayload(form);
     const response = await fetch(
       form.id
         ? `/api/admin/article-collections/${form.id}`
@@ -141,14 +187,135 @@ export function ArticleCollectionsManager() {
     );
     const result = (await response.json()) as ApiResult<AdminArticleCollection>;
 
-    if (!response.ok || !result.ok) {
-      setMessage(result.message ?? "保存合集失败。");
+    if (!response.ok || !result.ok || !result.data) {
+      throw new Error(result.message ?? "保存合集失败。");
+    }
+
+    if (options.resetAfterSave) {
+      resetForm();
+      setMessage("合集已保存。");
+    } else {
+      setForm({
+        id: result.data.id,
+        title: result.data.title,
+        slug: result.data.slug,
+        summary: result.data.summary,
+        cover: result.data.cover ?? "",
+        published: result.data.published,
+        featured: result.data.featured,
+        articleIds: result.data.articleIds
+      });
+    }
+
+    await loadData();
+    return result.data;
+  }
+
+  async function saveCollection() {
+    try {
+      await persistCollection({ resetAfterSave: true });
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "保存合集失败。");
+    }
+  }
+
+  async function ensureCollectionForUpload() {
+    const saved = await persistCollection({ resetAfterSave: false });
+    setMessage("合集已准备好，开始上传文件。");
+    return saved.id;
+  }
+
+  async function uploadFiles(files: File[]) {
+    if (files.length === 0 || batchUploading) {
       return;
     }
 
-    resetForm();
-    setMessage("合集已保存。");
-    await loadData();
+    const uploadItems = files.map((file) => ({
+      name: file.name,
+      status: "pending" as const
+    }));
+    setBatchItems(uploadItems);
+    setBatchUploading(true);
+
+    try {
+      const collectionId = await ensureCollectionForUpload();
+      const uploadedArticleIds: string[] = [];
+
+      for (let index = 0; index < files.length; index += 1) {
+        const file = files[index];
+        const endpoint = endpointForFile(file);
+
+        if (!endpoint) {
+          setBatchItems((items) =>
+            items.map((item, itemIndex) =>
+              itemIndex === index
+                ? { ...item, status: "error", message: "不支持这个文件类型。" }
+                : item
+            )
+          );
+          continue;
+        }
+
+        setBatchItems((items) =>
+          items.map((item, itemIndex) =>
+            itemIndex === index ? { ...item, status: "uploading" } : item
+          )
+        );
+
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("collectionId", collectionId);
+
+        try {
+          const response = await fetch(endpoint, {
+            method: "POST",
+            body: formData
+          });
+          const result = (await response.json()) as ApiResult<AdminArticle>;
+
+          if (!response.ok || !result.ok || !result.data) {
+            throw new Error(result.message ?? "上传失败。");
+          }
+
+          uploadedArticleIds.push(result.data.id);
+          setBatchItems((items) =>
+            items.map((item, itemIndex) =>
+              itemIndex === index
+                ? { ...item, status: "success", message: result.data?.title }
+                : item
+            )
+          );
+        } catch (error) {
+          setBatchItems((items) =>
+            items.map((item, itemIndex) =>
+              itemIndex === index
+                ? {
+                    ...item,
+                    status: "error",
+                    message: error instanceof Error ? error.message : "上传失败。"
+                  }
+                : item
+            )
+          );
+        }
+      }
+
+      if (uploadedArticleIds.length > 0) {
+        setForm((current) => ({
+          ...current,
+          articleIds: Array.from(
+            new Set([...current.articleIds, ...uploadedArticleIds])
+          )
+        }));
+      }
+
+      await loadData();
+      setMessage(`批量上传完成：成功 ${uploadedArticleIds.length} / ${files.length} 个文件。`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "批量上传失败。");
+    } finally {
+      setBatchUploading(false);
+    }
   }
 
   async function deleteCollection(collection: AdminArticleCollection) {
@@ -168,7 +335,7 @@ export function ArticleCollectionsManager() {
         <div>
           <h2 className="font-serif text-2xl font-semibold">文档合集</h2>
           <p className="mt-1 text-sm leading-6 text-zinc-500">
-            创建合集后，可以从已有文档里搜索添加；上传新文档时也能直接加入合集。
+            可以批量上传文档到当前合集，也可以从已有文档里继续添加。
           </p>
         </div>
         <button
@@ -231,47 +398,48 @@ export function ArticleCollectionsManager() {
           ))}
           {collections.length === 0 ? (
             <p className="rounded-2xl border border-white/10 bg-black/20 p-5 text-sm text-zinc-500">
-              还没有合集。
+              还没有合集。右侧选择多个文件就能直接创建并上传。
             </p>
           ) : null}
         </div>
 
         <div className="grid gap-4 rounded-2xl border border-white/10 bg-black/20 p-4">
-          <input
-            value={form.title}
-            onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                title: event.target.value,
-                slug: current.slug ? current.slug : slugify(event.target.value)
-              }))
-            }
-            className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm outline-none focus:border-white/40"
-            placeholder="合集标题"
-          />
-          <input
-            value={form.slug}
-            onChange={(event) =>
-              setForm((current) => ({ ...current, slug: event.target.value }))
-            }
-            className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm outline-none focus:border-white/40"
-            placeholder="collection-slug"
-          />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <input
+              value={form.title}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  title: event.target.value,
+                  slug: current.slug ? current.slug : slugify(event.target.value)
+                }))
+              }
+              className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm outline-none focus:border-white/40"
+              placeholder="合集标题（可选）"
+            />
+            <input
+              value={form.slug}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, slug: event.target.value }))
+              }
+              className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm outline-none focus:border-white/40"
+              placeholder="collection-slug（可选）"
+            />
+          </div>
           <textarea
             value={form.summary}
             onChange={(event) =>
               setForm((current) => ({ ...current, summary: event.target.value }))
             }
             className="min-h-24 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm outline-none focus:border-white/40"
-            placeholder="合集简介"
+            placeholder="合集简介（可选）"
           />
-          <input
+          <UploadField
+            label="合集封面"
+            kind="image"
             value={form.cover}
-            onChange={(event) =>
-              setForm((current) => ({ ...current, cover: event.target.value }))
-            }
-            className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm outline-none focus:border-white/40"
-            placeholder="封面 URL（可选）"
+            onChange={(url) => setForm((current) => ({ ...current, cover: url }))}
+            showUrlInput={false}
           />
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="flex items-center gap-2 text-sm text-zinc-300">
@@ -302,6 +470,75 @@ export function ArticleCollectionsManager() {
             </label>
           </div>
 
+          <section
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={(event) => {
+              event.preventDefault();
+              void uploadFiles(Array.from(event.dataTransfer.files ?? []));
+            }}
+            className="grid gap-4 rounded-2xl border border-dashed border-white/15 bg-white/[0.03] p-4"
+          >
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 className="text-sm font-medium text-zinc-200">批量上传文档</h3>
+                <p className="mt-1 text-xs leading-5 text-zinc-500">
+                  支持 Markdown、ZIP、DOCX。文件会自动导入并加入当前合集。
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => batchInputRef.current?.click()}
+                disabled={batchUploading}
+                className="rounded-full bg-white px-4 py-2 text-xs font-medium text-zinc-950 disabled:opacity-60"
+              >
+                {batchUploading ? "上传中" : "选择多个文件"}
+              </button>
+              <input
+                ref={batchInputRef}
+                type="file"
+                multiple
+                accept={batchAccept}
+                className="hidden"
+                onChange={(event) => {
+                  void uploadFiles(Array.from(event.target.files ?? []));
+                  event.currentTarget.value = "";
+                }}
+              />
+            </div>
+            {batchItems.length > 0 ? (
+              <div className="grid gap-2">
+                {batchItems.map((item) => (
+                  <div
+                    key={item.name}
+                    className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm"
+                  >
+                    <span className="min-w-0 truncate text-zinc-200">
+                      {item.name}
+                    </span>
+                    <span
+                      className={cn(
+                        "shrink-0 rounded-full border px-2.5 py-1 text-xs",
+                        item.status === "success"
+                          ? "border-emerald-400/30 text-emerald-300"
+                          : item.status === "error"
+                            ? "border-red-400/30 text-red-200"
+                            : "border-white/10 text-zinc-400"
+                      )}
+                    >
+                      {item.status === "success"
+                        ? "完成"
+                        : item.status === "error"
+                          ? item.message ?? "失败"
+                          : item.status === "uploading"
+                            ? "上传中"
+                            : "等待"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </section>
+
           <div className="grid gap-4 rounded-2xl border border-white/10 bg-black/20 p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -310,12 +547,12 @@ export function ArticleCollectionsManager() {
                   已加入 {selectedArticles.length} 篇文档
                 </p>
               </div>
-              <Link
-                href="/dashboard/articles/import"
-                className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-zinc-300 transition hover:border-white/30"
-              >
-                上传新文档
-              </Link>
+              <input
+                value={articleSearch}
+                onChange={(event) => setArticleSearch(event.target.value)}
+                className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-white/40 sm:w-72"
+                placeholder="搜索已有文档"
+              />
             </div>
 
             <div className="grid gap-2">
@@ -341,23 +578,16 @@ export function ArticleCollectionsManager() {
               ))}
               {selectedArticles.length === 0 ? (
                 <p className="rounded-2xl border border-dashed border-white/10 px-4 py-5 text-sm text-zinc-500">
-                  还没有加入文档。请在下方搜索已有文档并点击“加入合集”。
+                  批量上传后，文档会自动出现在这里。
                 </p>
               ) : null}
             </div>
 
             <div className="border-t border-white/10 pt-4">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <h3 className="text-sm font-medium text-zinc-200">添加已有文档</h3>
-                <input
-                  value={articleSearch}
-                  onChange={(event) => setArticleSearch(event.target.value)}
-                  className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-white/40 sm:w-72"
-                  placeholder="搜索标题、slug、摘要"
-                />
-              </div>
-
-              <div className="mt-3 max-h-80 overflow-auto rounded-2xl border border-white/10">
+              <h3 className="mb-3 text-sm font-medium text-zinc-200">
+                添加已有文档
+              </h3>
+              <div className="max-h-80 overflow-auto rounded-2xl border border-white/10">
                 {availableArticles.map((article) => (
                   <article
                     key={article.id}
@@ -381,21 +611,11 @@ export function ArticleCollectionsManager() {
                   </article>
                 ))}
                 {availableArticles.length === 0 ? (
-                  <div className="grid gap-3 px-4 py-5 text-sm text-zinc-500">
-                    <p>
-                      {articles.length === 0
-                        ? "还没有可添加的文档。"
-                        : "没有找到匹配的文档。"}
-                    </p>
-                    {articles.length === 0 ? (
-                      <Link
-                        href="/dashboard/articles/import"
-                        className="w-fit rounded-full bg-white px-4 py-2 text-xs text-zinc-950"
-                      >
-                        去上传文档
-                      </Link>
-                    ) : null}
-                  </div>
+                  <p className="px-4 py-5 text-sm text-zinc-500">
+                    {articles.length === 0
+                      ? "还没有可添加的旧文档。"
+                      : "没有找到匹配的旧文档。"}
+                  </p>
                 ) : null}
               </div>
             </div>

@@ -9,9 +9,16 @@ type UploadFieldProps = {
   kind: "image" | "video";
   value?: string;
   onChange: (url: string) => void;
+  showUrlInput?: boolean;
 };
 
-export function UploadField({ label, kind, value, onChange }: UploadFieldProps) {
+export function UploadField({
+  label,
+  kind,
+  value,
+  onChange,
+  showUrlInput = true
+}: UploadFieldProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState("");
@@ -80,16 +87,22 @@ export function UploadField({ label, kind, value, onChange }: UploadFieldProps) 
           ) : null}
         </div>
 
-        <input
-          value={value ?? ""}
-          onChange={(event) => onChange(event.target.value)}
-          className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-white/40"
-          placeholder={
-            kind === "image"
-              ? "https://...public.blob.vercel-storage.com/..."
-              : "https://...public.blob.vercel-storage.com/..."
-          }
-        />
+        {showUrlInput ? (
+          <input
+            value={value ?? ""}
+            onChange={(event) => onChange(event.target.value)}
+            className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-white/40"
+            placeholder={
+              kind === "image"
+                ? "https://...public.blob.vercel-storage.com/..."
+                : "https://...public.blob.vercel-storage.com/..."
+            }
+          />
+        ) : value ? (
+          <p className="truncate rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-zinc-400">
+            {value}
+          </p>
+        ) : null}
 
         {uploading || progress > 0 ? (
           <div className="h-1.5 overflow-hidden rounded-full bg-white/10">

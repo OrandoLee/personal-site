@@ -156,10 +156,6 @@ export function parseMarkdownArticle(source: string, fileName = "article.md") {
     typeof data.title === "string" && data.title.trim()
       ? data.title.trim()
       : fallbackTitle;
-  const summary =
-    typeof data.description === "string" && data.description.trim()
-      ? data.description.trim()
-      : excerpt(content);
   const slugSource =
     typeof data.slug === "string" && data.slug.trim() ? data.slug : title;
 
@@ -171,7 +167,7 @@ export function parseMarkdownArticle(source: string, fileName = "article.md") {
       typeof data.category === "string" ? data.category.trim() : ""
     ),
     tags: normalizeTags(data.tags),
-    summary,
+    summary: "",
     cover:
       typeof data.coverImage === "string"
         ? data.coverImage.trim()

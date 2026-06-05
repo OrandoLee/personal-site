@@ -14,6 +14,11 @@ const optionalText = z
     const trimmed = value?.trim();
     return trimmed ? trimmed : null;
   });
+const optionalSummary = z
+  .string()
+  .optional()
+  .nullable()
+  .transform((value) => value?.trim() ?? "");
 
 export const loginSchema = z.object({
   username: z.string().trim().min(1, uiText.apiMessages.inputUsername),
@@ -53,7 +58,7 @@ export const articleSchema = z.object({
     errorMap: () => ({ message: uiText.apiMessages.inputCategory })
   }),
   tags: z.array(z.string().trim().min(1)).default([]),
-  summary: z.string().trim().min(1, uiText.apiMessages.inputSummary),
+  summary: optionalSummary,
   cover: optionalText,
   content: z.string().trim().min(1, uiText.apiMessages.inputContent),
   published: z.boolean().default(false),
@@ -67,7 +72,7 @@ export const articleCollectionSchema = z.object({
     .trim()
     .min(1, uiText.apiMessages.inputSlug)
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, uiText.apiMessages.invalidSlug),
-  summary: z.string().trim().min(1, uiText.apiMessages.inputSummary),
+  summary: optionalSummary,
   cover: optionalText,
   published: z.boolean().default(false),
   featured: z.boolean().default(false),

@@ -8,6 +8,9 @@ type ArticleCardProps = {
 };
 
 export function ArticleCard({ article }: ArticleCardProps) {
+  const shouldShowSummary =
+    article.summary.trim().length > 0 && !article.tags.includes("DOCX");
+
   return (
     <Link href={`/articles/${article.slug}`} className="group block">
       <article className="grid gap-6 rounded-3xl border border-archive-line bg-archive-paper2 p-5 transition duration-300 hover:-translate-y-0.5 hover:shadow-archive sm:grid-cols-[180px_1fr] sm:p-6">
@@ -41,9 +44,11 @@ export function ArticleCard({ article }: ArticleCardProps) {
             <h2 className="font-serif text-3xl font-semibold leading-tight text-archive-ink transition group-hover:text-archive-clay">
               {article.title}
             </h2>
-            <p className="mt-4 max-w-2xl text-base leading-8 text-archive-muted">
-              {article.summary}
-            </p>
+            {shouldShowSummary ? (
+              <p className="mt-4 max-w-2xl text-base leading-8 text-archive-muted">
+                {article.summary}
+              </p>
+            ) : null}
           </div>
 
           <div className="flex flex-wrap gap-2">

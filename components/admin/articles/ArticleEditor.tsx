@@ -224,7 +224,7 @@ export function ArticleEditor({ articleId }: ArticleEditorProps) {
           placeholder={uiText.admin.tagsPlaceholder}
         />
         <textarea
-          {...register("summary", { required: true })}
+          {...register("summary")}
           className="min-h-24 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-white/40"
           placeholder={uiText.admin.summaryPlaceholder}
         />

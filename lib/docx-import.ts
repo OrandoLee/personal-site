@@ -265,12 +265,6 @@ function extractTitle(markdown: string, fileName: string) {
   return heading ? stripMarkdown(heading) : firstLine ?? fileName.replace(/\.docx$/i, "");
 }
 
-function excerpt(markdown: string) {
-  const plain = stripMarkdown(markdown);
-
-  return plain.length <= 160 ? plain : `${plain.slice(0, 150).trim()}...`;
-}
-
 export async function parseDocxArticle(file: File): Promise<ImportedMarkdownArticle> {
   const zip = await JSZip.loadAsync(await file.arrayBuffer());
   const documentEntry = zip.file("word/document.xml");
@@ -298,7 +292,7 @@ export async function parseDocxArticle(file: File): Promise<ImportedMarkdownArti
     date: todayInput(),
     category: normalizeArticleCategory(""),
     tags: ["DOCX"],
-    summary: excerpt(markdown),
+    summary: "",
     cover: "",
     content: markDocxArticleContent(markdown),
     published: false,

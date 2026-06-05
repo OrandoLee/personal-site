@@ -4,6 +4,7 @@ import { requireAdminApi, unauthorizedJson } from "@/lib/admin-auth";
 import { errorJson, okJson } from "@/lib/api-utils";
 import { parseDocxArticle } from "@/lib/docx-import";
 import {
+  shouldPublishImportedFile,
   shouldUseUploadedFileTitle,
   titleFromUploadedFileName
 } from "@/lib/import-file-name";
@@ -29,6 +30,9 @@ export async function POST(request: Request) {
   const useFileNameAsTitle = shouldUseUploadedFileTitle(
     formData.get("useFileNameAsTitle")
   );
+  const publishOnImport = shouldPublishImportedFile(
+    formData.get("publishOnImport")
+  );
 
   if (!(file instanceof File)) {
     return errorJson("请上传 DOCX 文件。", 400);
@@ -52,7 +56,8 @@ export async function POST(request: Request) {
       collectionId: typeof collectionId === "string" ? collectionId : null,
       titleOverride: useFileNameAsTitle
         ? titleFromUploadedFileName(file.name)
-        : null
+        : null,
+      publishedOverride: publishOnImport ? true : undefined
     });
 
     return okJson(savedArticle, { status: 201 });

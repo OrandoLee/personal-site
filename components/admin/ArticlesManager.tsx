@@ -71,7 +71,10 @@ function endpointForFile(file: File) {
   return null;
 }
 
-function collectionPayload(form: CollectionForm) {
+function collectionPayload(
+  form: CollectionForm,
+  options: { forcePublished?: boolean } = {}
+) {
   const fallbackTitle = "未命名合集";
   const title = form.title.trim() || fallbackTitle;
   const slug = form.slug.trim() || slugify(title) || `collection-${Date.now()}`;
@@ -82,7 +85,7 @@ function collectionPayload(form: CollectionForm) {
     slug,
     summary,
     cover: form.cover || null,
-    published: form.published,
+    published: options.forcePublished ? true : form.published,
     featured: form.featured,
     articleIds: form.articleIds
   };
@@ -173,8 +176,13 @@ export function ArticleCollectionsManager() {
     }));
   }
 
-  async function persistCollection(options: { resetAfterSave: boolean }) {
-    const payload = collectionPayload(form);
+  async function persistCollection(options: {
+    resetAfterSave: boolean;
+    forcePublished?: boolean;
+  }) {
+    const payload = collectionPayload(form, {
+      forcePublished: options.forcePublished
+    });
     const response = await fetch(
       form.id
         ? `/api/admin/article-collections/${form.id}`
@@ -220,7 +228,10 @@ export function ArticleCollectionsManager() {
   }
 
   async function ensureCollectionForUpload() {
-    const saved = await persistCollection({ resetAfterSave: false });
+    const saved = await persistCollection({
+      resetAfterSave: false,
+      forcePublished: true
+    });
     setMessage("合集已准备好，开始上传文件。");
     return saved.id;
   }
@@ -266,6 +277,7 @@ export function ArticleCollectionsManager() {
         formData.append("file", file);
         formData.append("collectionId", collectionId);
         formData.append("useFileNameAsTitle", "true");
+        formData.append("publishOnImport", "true");
 
         try {
           const response = await fetch(endpoint, {
@@ -483,7 +495,7 @@ export function ArticleCollectionsManager() {
               <div>
                 <h3 className="text-sm font-medium text-zinc-200">批量上传文档</h3>
                 <p className="mt-1 text-xs leading-5 text-zinc-500">
-                  支持 Markdown、ZIP、DOCX。文件会自动导入并加入当前合集。
+                  支持 Markdown、ZIP、DOCX。文件会自动导入、加入当前合集并公开。
                 </p>
               </div>
               <button
@@ -641,6 +653,10 @@ export function ArticleCollectionsManager() {
 export function ArticlesManager() {
   const [items, setItems] = useState<AdminArticle[]>([]);
   const [search, setSearch] = useState("");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkMessage, setBulkMessage] = useState("");
+
+  const allSelected = items.length > 0 && selectedIds.length === items.length;
 
   const loadItems = useCallback(async (query = "") => {
     const response = await fetch(
@@ -649,6 +665,7 @@ export function ArticlesManager() {
     );
     const result = (await response.json()) as ApiResult<AdminArticle[]>;
     setItems(result.data ?? []);
+    setSelectedIds([]);
   }, []);
 
   useEffect(() => {
@@ -679,6 +696,49 @@ export function ArticlesManager() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ featured: !item.featured })
     });
+    await loadItems(search);
+  }
+
+  function toggleSelected(id: string, checked: boolean) {
+    setSelectedIds((current) =>
+      checked
+        ? Array.from(new Set([...current, id]))
+        : current.filter((selectedId) => selectedId !== id)
+    );
+  }
+
+  function toggleAllSelected(checked: boolean) {
+    setSelectedIds(checked ? items.map((item) => item.id) : []);
+  }
+
+  async function runBulkAction(
+    action: "delete" | "feature" | "unfeature" | "publish" | "unpublish"
+  ) {
+    if (selectedIds.length === 0) {
+      setBulkMessage("请先选择文档。");
+      return;
+    }
+
+    if (
+      action === "delete" &&
+      !window.confirm(`确定删除选中的 ${selectedIds.length} 篇文档吗？`)
+    ) {
+      return;
+    }
+
+    const response = await fetch("/api/admin/articles/bulk", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action, ids: selectedIds })
+    });
+    const result = (await response.json()) as ApiResult<{ count: number }>;
+
+    if (!response.ok || !result.ok) {
+      setBulkMessage(result.message ?? "批量操作失败。");
+      return;
+    }
+
+    setBulkMessage(`已处理 ${result.data?.count ?? selectedIds.length} 篇文档。`);
     await loadItems(search);
   }
 
@@ -727,10 +787,61 @@ export function ArticlesManager() {
         </button>
       </form>
 
+      <div className="mb-5 flex flex-col gap-3 rounded-2xl border border-white/10 bg-black/20 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-zinc-400">
+          已选择 {selectedIds.length} / {items.length} 篇文档
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => void runBulkAction("publish")}
+            className="rounded-full border border-emerald-400/30 px-3 py-1.5 text-xs text-emerald-200"
+          >
+            批量发布
+          </button>
+          <button
+            type="button"
+            onClick={() => void runBulkAction("unpublish")}
+            className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-zinc-300"
+          >
+            批量取消发布
+          </button>
+          <button
+            type="button"
+            onClick={() => void runBulkAction("feature")}
+            className="rounded-full border border-amber-300/40 px-3 py-1.5 text-xs text-amber-200"
+          >
+            批量置顶
+          </button>
+          <button
+            type="button"
+            onClick={() => void runBulkAction("unfeature")}
+            className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-zinc-300"
+          >
+            取消置顶
+          </button>
+          <button
+            type="button"
+            onClick={() => void runBulkAction("delete")}
+            className="rounded-full border border-red-400/30 px-3 py-1.5 text-xs text-red-200"
+          >
+            批量删除
+          </button>
+        </div>
+        {bulkMessage ? <p className="text-xs text-zinc-500">{bulkMessage}</p> : null}
+      </div>
+
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[860px] text-left text-sm">
+        <table className="w-full min-w-[920px] text-left text-sm">
           <thead className="text-zinc-500">
             <tr className="border-b border-white/10">
+              <th className="py-3 pr-4 font-normal">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={(event) => toggleAllSelected(event.target.checked)}
+                />
+              </th>
               <th className="py-3 pr-4 font-normal">{uiText.admin.title}</th>
               <th className="py-3 pr-4 font-normal">{uiText.admin.category}</th>
               <th className="py-3 pr-4 font-normal">{uiText.admin.date}</th>
@@ -742,6 +853,15 @@ export function ArticlesManager() {
           <tbody>
             {items.map((item) => (
               <tr key={item.id} className="border-b border-white/5">
+                <td className="py-4 pr-4">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.includes(item.id)}
+                    onChange={(event) =>
+                      toggleSelected(item.id, event.target.checked)
+                    }
+                  />
+                </td>
                 <td className="py-4 pr-4">
                   <p className="text-white">{item.title}</p>
                   <p className="mt-1 text-xs text-zinc-500">/{item.slug}</p>

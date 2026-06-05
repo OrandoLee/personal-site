@@ -7,3 +7,7 @@ export function titleFromUploadedFileName(fileName: string) {
 export function shouldUseUploadedFileTitle(value: FormDataEntryValue | null) {
   return value === "true" || value === "1";
 }
+
+export function shouldPublishImportedFile(value: FormDataEntryValue | null) {
+  return value === "true" || value === "1";
+}

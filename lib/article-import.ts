@@ -7,6 +7,7 @@ import { slugify } from "@/lib/slug";
 type CreateImportedArticleOptions = {
   collectionId?: string | null;
   titleOverride?: string | null;
+  publishedOverride?: boolean;
 };
 
 function stableTitleSlug(title: string) {
@@ -29,6 +30,7 @@ export async function createImportedArticle(
   options: CreateImportedArticleOptions = {}
 ) {
   const title = options.titleOverride?.trim() || article.title;
+  const published = options.publishedOverride ?? article.published;
   let slug = options.titleOverride
     ? stableTitleSlug(title)
     : article.slug;
@@ -46,7 +48,7 @@ export async function createImportedArticle(
             summary: article.summary,
             cover: article.cover || null,
             content: article.content,
-            published: article.published
+            published
           }
         });
 

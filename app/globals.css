@@ -250,17 +250,17 @@ video {
 .orask-title-logo__tagline {
   display: block;
   background-color: currentColor;
-  mask-position: center;
+  mask-position: left center;
   mask-repeat: no-repeat;
   mask-size: contain;
-  -webkit-mask-position: center;
+  -webkit-mask-position: left center;
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-size: contain;
 }
 
 .orask-title-logo__main {
   width: 100%;
-  aspect-ratio: 1035 / 335;
+  aspect-ratio: 1000 / 335;
   mask-image: url("/orask-title-main.svg");
   opacity: 0;
   transform: translateY(14px);
@@ -269,9 +269,8 @@ video {
 
 .orask-title-logo__tagline {
   width: 56.5%;
-  aspect-ratio: 585 / 110;
+  aspect-ratio: 560 / 110;
   margin-top: 0.5rem;
-  margin-left: 3.9%;
   mask-image: url("/orask-title-tagline.svg");
   opacity: 0;
   transform: translateX(-12px);

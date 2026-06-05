@@ -26,7 +26,7 @@ const navItems = [
     href: "/articles",
     label: uiText.nav.articles,
     logo: "/nav-logos/article.svg",
-    logoClassName: "w-[5.8rem] sm:w-[6.7rem]",
+    logoClassName: "h-[1rem] w-[6.6rem] sm:h-[1.12rem] sm:w-[7.6rem]",
     motion: "article"
   },
   {

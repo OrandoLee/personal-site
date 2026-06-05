@@ -3,6 +3,10 @@ import { createImportedArticle } from "@/lib/article-import";
 import { requireAdminApi, unauthorizedJson } from "@/lib/admin-auth";
 import { errorJson, okJson } from "@/lib/api-utils";
 import { parseDocxArticle } from "@/lib/docx-import";
+import {
+  shouldUseUploadedFileTitle,
+  titleFromUploadedFileName
+} from "@/lib/import-file-name";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,6 +26,9 @@ export async function POST(request: Request) {
   const formData = await request.formData();
   const file = formData.get("file");
   const collectionId = formData.get("collectionId");
+  const useFileNameAsTitle = shouldUseUploadedFileTitle(
+    formData.get("useFileNameAsTitle")
+  );
 
   if (!(file instanceof File)) {
     return errorJson("请上传 DOCX 文件。", 400);
@@ -42,7 +49,10 @@ export async function POST(request: Request) {
   try {
     const article = await parseDocxArticle(file);
     const savedArticle = await createImportedArticle(article, {
-      collectionId: typeof collectionId === "string" ? collectionId : null
+      collectionId: typeof collectionId === "string" ? collectionId : null,
+      titleOverride: useFileNameAsTitle
+        ? titleFromUploadedFileName(file.name)
+        : null
     });
 
     return okJson(savedArticle, { status: 201 });

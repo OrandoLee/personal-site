@@ -265,6 +265,7 @@ export function ArticleCollectionsManager() {
         const formData = new FormData();
         formData.append("file", file);
         formData.append("collectionId", collectionId);
+        formData.append("useFileNameAsTitle", "true");
 
         try {
           const response = await fetch(endpoint, {

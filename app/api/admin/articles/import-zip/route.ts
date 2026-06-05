@@ -2,6 +2,10 @@ import { uiText } from "@/content/uiText";
 import { createImportedArticle } from "@/lib/article-import";
 import { requireAdminApi, unauthorizedJson } from "@/lib/admin-auth";
 import { errorJson, okJson } from "@/lib/api-utils";
+import {
+  shouldUseUploadedFileTitle,
+  titleFromUploadedFileName
+} from "@/lib/import-file-name";
 import { importMarkdownZipPackage } from "@/lib/zip-import";
 
 export const runtime = "nodejs";
@@ -23,6 +27,9 @@ export async function POST(request: Request) {
   const formData = await request.formData();
   const file = formData.get("file");
   const collectionId = formData.get("collectionId");
+  const useFileNameAsTitle = shouldUseUploadedFileTitle(
+    formData.get("useFileNameAsTitle")
+  );
 
   if (!(file instanceof File)) {
     return errorJson(uiText.apiMessages.uploadZip, 400);
@@ -43,7 +50,10 @@ export async function POST(request: Request) {
   try {
     const article = await importMarkdownZipPackage(file);
     const savedArticle = await createImportedArticle(article, {
-      collectionId: typeof collectionId === "string" ? collectionId : null
+      collectionId: typeof collectionId === "string" ? collectionId : null,
+      titleOverride: useFileNameAsTitle
+        ? titleFromUploadedFileName(file.name)
+        : null
     });
 
     return okJson(savedArticle, { status: 201 });

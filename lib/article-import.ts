@@ -2,23 +2,43 @@ import { Prisma } from "@prisma/client";
 import { dateInputToDate, serializeArticle, stringifyTags } from "@/lib/content-serializers";
 import { prisma } from "@/lib/db";
 import type { ImportedMarkdownArticle } from "@/lib/markdown-import";
+import { slugify } from "@/lib/slug";
 
 type CreateImportedArticleOptions = {
   collectionId?: string | null;
+  titleOverride?: string | null;
 };
+
+function stableTitleSlug(title: string) {
+  const slug = slugify(title);
+
+  if (slug && /[a-z]/.test(slug)) {
+    return slug;
+  }
+
+  let hash = 0;
+  for (let index = 0; index < title.length; index += 1) {
+    hash = (hash * 31 + title.charCodeAt(index)) >>> 0;
+  }
+
+  return `document-${hash.toString(36)}`;
+}
 
 export async function createImportedArticle(
   article: ImportedMarkdownArticle,
   options: CreateImportedArticleOptions = {}
 ) {
-  let slug = article.slug;
+  const title = options.titleOverride?.trim() || article.title;
+  let slug = options.titleOverride
+    ? stableTitleSlug(title)
+    : article.slug;
 
   for (let attempt = 1; attempt <= 20; attempt += 1) {
     try {
       const row = await prisma.$transaction(async (tx) => {
         const savedArticle = await tx.article.create({
           data: {
-            title: article.title,
+            title,
             slug,
             date: dateInputToDate(article.date),
             category: article.category,

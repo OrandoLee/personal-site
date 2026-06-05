@@ -5,7 +5,8 @@ import { uiText } from "@/content/uiText";
 import {
   formatArticleCategory,
   getAllArticleCategories,
-  getAllArticles
+  getAllArticles,
+  getArticleCollections
 } from "@/lib/articles";
 import { cn } from "@/lib/classNames";
 
@@ -22,8 +23,11 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function ArticlesPage({ searchParams }: ArticlesPageProps) {
-  const articles = await getAllArticles();
-  const categories = await getAllArticleCategories();
+  const [articles, categories, collections] = await Promise.all([
+    getAllArticles(),
+    getAllArticleCategories(),
+    getArticleCollections()
+  ]);
   const activeCategory = searchParams?.category ?? "all";
   const filteredArticles =
     activeCategory === "all"
@@ -76,6 +80,39 @@ export default async function ArticlesPage({ searchParams }: ArticlesPageProps) 
           </Link>
         ))}
       </div>
+
+      {collections.length > 0 ? (
+        <section className="mb-10 grid gap-5 md:grid-cols-2">
+          {collections.map((collection) => (
+            <Link
+              key={collection.slug}
+              href={`/articles/collections/${collection.slug}`}
+              className="group grid overflow-hidden rounded-3xl border border-archive-line bg-archive-paper2 transition hover:-translate-y-0.5 hover:border-archive-ink"
+            >
+              {collection.cover ? (
+                <img
+                  src={collection.cover}
+                  alt={collection.title}
+                  className="h-48 w-full object-cover"
+                />
+              ) : null}
+              <div className="p-6">
+                <div className="flex flex-wrap items-center gap-2 text-xs text-archive-muted">
+                  <span>合集</span>
+                  <span>{collection.articles.length} 篇文档</span>
+                  {collection.featured ? <span>置顶</span> : null}
+                </div>
+                <h2 className="mt-3 font-serif text-3xl font-semibold text-archive-ink">
+                  {collection.title}
+                </h2>
+                <p className="mt-3 line-clamp-3 text-sm leading-6 text-archive-muted">
+                  {collection.summary}
+                </p>
+              </div>
+            </Link>
+          ))}
+        </section>
+      ) : null}
 
       <section className="grid gap-5">
         {filteredArticles.map((article) => (

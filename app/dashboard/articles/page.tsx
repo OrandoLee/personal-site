@@ -1,4 +1,7 @@
-import { ArticlesManager } from "@/components/admin/ArticlesManager";
+import {
+  ArticleCollectionsManager,
+  ArticlesManager
+} from "@/components/admin/ArticlesManager";
 import { uiText } from "@/content/uiText";
 
 export const dynamic = "force-dynamic";
@@ -12,6 +15,7 @@ export default function ArticlesAdminPage() {
           {uiText.admin.articlesTitle}
         </h1>
       </section>
+      <ArticleCollectionsManager />
       <ArticlesManager />
     </div>
   );

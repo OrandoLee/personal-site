@@ -27,6 +27,7 @@ export async function POST(request: Request) {
 
   const formData = await request.formData();
   const file = formData.get("file");
+  const collectionId = formData.get("collectionId");
 
   if (!(file instanceof File)) {
     return errorJson(uiText.apiMessages.uploadMarkdown, 400);
@@ -50,5 +51,10 @@ export async function POST(request: Request) {
     return errorJson(uiText.apiMessages.markdownHasLocalImages, 409);
   }
 
-  return okJson(await createImportedArticle(article), { status: 201 });
+  return okJson(
+    await createImportedArticle(article, {
+      collectionId: typeof collectionId === "string" ? collectionId : null
+    }),
+    { status: 201 }
+  );
 }

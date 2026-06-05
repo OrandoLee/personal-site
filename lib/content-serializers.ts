@@ -1,4 +1,6 @@
 import type {
+  ArticleCollection as DbArticleCollection,
+  ArticleCollectionItem as DbArticleCollectionItem,
   Article as DbArticle,
   DailyUpdate as DbDailyUpdate,
   GalleryItem as DbGalleryItem,
@@ -167,6 +169,29 @@ export function serializeArticle(row: DbArticle): ArticleMeta & {
     content: row.content,
     published: row.published,
     featured: row.featured,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString()
+  };
+}
+
+type DbArticleCollectionWithItems = DbArticleCollection & {
+  items?: Array<DbArticleCollectionItem & { article: DbArticle }>;
+};
+
+export function serializeArticleCollection(row: DbArticleCollectionWithItems) {
+  const items = row.items ?? [];
+
+  return {
+    id: row.id,
+    title: row.title,
+    slug: row.slug,
+    summary: row.summary,
+    cover: row.cover ?? undefined,
+    published: row.published,
+    featured: row.featured,
+    sortOrder: row.sortOrder,
+    articles: items.map((item) => serializeArticle(item.article)),
+    articleIds: items.map((item) => item.articleId),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString()
   };

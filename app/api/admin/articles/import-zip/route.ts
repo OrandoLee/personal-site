@@ -22,6 +22,7 @@ export async function POST(request: Request) {
 
   const formData = await request.formData();
   const file = formData.get("file");
+  const collectionId = formData.get("collectionId");
 
   if (!(file instanceof File)) {
     return errorJson(uiText.apiMessages.uploadZip, 400);
@@ -41,7 +42,9 @@ export async function POST(request: Request) {
 
   try {
     const article = await importMarkdownZipPackage(file);
-    const savedArticle = await createImportedArticle(article);
+    const savedArticle = await createImportedArticle(article, {
+      collectionId: typeof collectionId === "string" ? collectionId : null
+    });
 
     return okJson(savedArticle, { status: 201 });
   } catch (error) {

@@ -60,6 +60,21 @@ export const articleSchema = z.object({
   featured: z.boolean().default(false)
 });
 
+export const articleCollectionSchema = z.object({
+  title: z.string().trim().min(1, uiText.apiMessages.inputTitle),
+  slug: z
+    .string()
+    .trim()
+    .min(1, uiText.apiMessages.inputSlug)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, uiText.apiMessages.invalidSlug),
+  summary: z.string().trim().min(1, uiText.apiMessages.inputSummary),
+  cover: optionalText,
+  published: z.boolean().default(false),
+  featured: z.boolean().default(false),
+  sortOrder: z.coerce.number().int().default(100),
+  articleIds: z.array(z.string().trim().min(1)).default([])
+});
+
 export const gallerySchema = z.object({
   title: z.string().trim().min(1, uiText.apiMessages.inputTitle),
   slug: z
@@ -109,5 +124,6 @@ export const oraskPatchSchema = z.object({
 
 export type DailyUpdateInput = z.infer<typeof dailyUpdateSchema>;
 export type ArticleInput = z.infer<typeof articleSchema>;
+export type ArticleCollectionInput = z.infer<typeof articleCollectionSchema>;
 export type GalleryInput = z.infer<typeof gallerySchema>;
 export type LabProjectInput = z.infer<typeof labProjectSchema>;

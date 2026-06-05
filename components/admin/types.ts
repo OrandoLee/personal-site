@@ -37,6 +37,21 @@ export type AdminArticle = {
   updatedAt: string;
 };
 
+export type AdminArticleCollection = {
+  id: string;
+  title: string;
+  slug: string;
+  summary: string;
+  cover?: string;
+  published: boolean;
+  featured: boolean;
+  sortOrder: number;
+  articles: AdminArticle[];
+  articleIds: string[];
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type AdminGalleryItem = {
   id: string;
   title: string;

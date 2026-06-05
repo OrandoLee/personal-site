@@ -3,23 +3,48 @@ import { dateInputToDate, serializeArticle, stringifyTags } from "@/lib/content-
 import { prisma } from "@/lib/db";
 import type { ImportedMarkdownArticle } from "@/lib/markdown-import";
 
-export async function createImportedArticle(article: ImportedMarkdownArticle) {
+type CreateImportedArticleOptions = {
+  collectionId?: string | null;
+};
+
+export async function createImportedArticle(
+  article: ImportedMarkdownArticle,
+  options: CreateImportedArticleOptions = {}
+) {
   let slug = article.slug;
 
   for (let attempt = 1; attempt <= 20; attempt += 1) {
     try {
-      const row = await prisma.article.create({
-        data: {
-          title: article.title,
-          slug,
-          date: dateInputToDate(article.date),
-          category: article.category,
-          tags: stringifyTags(article.tags),
-          summary: article.summary,
-          cover: article.cover || null,
-          content: article.content,
-          published: article.published
+      const row = await prisma.$transaction(async (tx) => {
+        const savedArticle = await tx.article.create({
+          data: {
+            title: article.title,
+            slug,
+            date: dateInputToDate(article.date),
+            category: article.category,
+            tags: stringifyTags(article.tags),
+            summary: article.summary,
+            cover: article.cover || null,
+            content: article.content,
+            published: article.published
+          }
+        });
+
+        if (options.collectionId) {
+          const count = await tx.articleCollectionItem.count({
+            where: { collectionId: options.collectionId }
+          });
+
+          await tx.articleCollectionItem.create({
+            data: {
+              collectionId: options.collectionId,
+              articleId: savedArticle.id,
+              sortOrder: (count + 1) * 10
+            }
+          });
         }
+
+        return savedArticle;
       });
 
       return serializeArticle(row);
@@ -38,4 +63,3 @@ export async function createImportedArticle(article: ImportedMarkdownArticle) {
 
   throw new Error("Could not create a unique slug for this article.");
 }
-

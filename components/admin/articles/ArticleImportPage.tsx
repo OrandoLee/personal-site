@@ -1,8 +1,12 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import type { AdminArticle, ApiResult } from "@/components/admin/types";
+import type {
+  AdminArticle,
+  AdminArticleCollection,
+  ApiResult
+} from "@/components/admin/types";
 import { uiText } from "@/content/uiText";
 import { cn } from "@/lib/classNames";
 
@@ -17,6 +21,7 @@ type ImportCardProps = {
   endpoint: string;
   status: ImportStatus;
   message: string;
+  collectionId: string;
   onStatusChange: (status: ImportStatus, message?: string) => void;
   onSuccess: (article: AdminArticle) => void;
   onSwitchToZip?: () => void;
@@ -45,6 +50,7 @@ function ImportCard({
   endpoint,
   status,
   message,
+  collectionId,
   onStatusChange,
   onSuccess,
   onSwitchToZip
@@ -55,6 +61,9 @@ function ImportCard({
   async function upload(file: File) {
     const formData = new FormData();
     formData.append("file", file);
+    if (collectionId) {
+      formData.append("collectionId", collectionId);
+    }
     onStatusChange("uploading", uiText.admin.uploadingFile);
 
     try {
@@ -177,6 +186,8 @@ function ImportCard({
 
 export function ArticleImportPage() {
   const [activeMode, setActiveMode] = useState<ImportMode>("markdown");
+  const [collections, setCollections] = useState<AdminArticleCollection[]>([]);
+  const [collectionId, setCollectionId] = useState("");
   const [markdownStatus, setMarkdownStatus] = useState<ImportStatus>("idle");
   const [zipStatus, setZipStatus] = useState<ImportStatus>("idle");
   const [docxStatus, setDocxStatus] = useState<ImportStatus>("idle");
@@ -184,6 +195,20 @@ export function ArticleImportPage() {
   const [zipMessage, setZipMessage] = useState("");
   const [docxMessage, setDocxMessage] = useState("");
   const [article, setArticle] = useState<AdminArticle | null>(null);
+
+  useEffect(() => {
+    async function loadCollections() {
+      const response = await fetch("/api/admin/article-collections", {
+        cache: "no-store"
+      });
+      const result = (await response.json()) as ApiResult<
+        AdminArticleCollection[]
+      >;
+      setCollections(result.data ?? []);
+    }
+
+    void loadCollections();
+  }, []);
 
   function setModeStatus(mode: ImportMode, status: ImportStatus, message = "") {
     if (mode === "markdown") {
@@ -240,6 +265,27 @@ export function ArticleImportPage() {
         ))}
       </div>
 
+      <section className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
+        <label className="grid gap-2 text-sm text-zinc-400">
+          <span>导入到合集（可选）</span>
+          <select
+            value={collectionId}
+            onChange={(event) => setCollectionId(event.target.value)}
+            className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-zinc-200 outline-none focus:border-white/40"
+          >
+            <option value="">不加入合集</option>
+            {collections.map((collection) => (
+              <option key={collection.id} value={collection.id}>
+                {collection.title}
+              </option>
+            ))}
+          </select>
+        </label>
+        <p className="mt-3 text-xs leading-5 text-zinc-500">
+          先在文档管理页创建合集并保存，再回到这里上传，新文档会自动加入所选合集。
+        </p>
+      </section>
+
       <div className="grid gap-5 lg:grid-cols-3">
         <div className={activeMode === "markdown" ? "block" : "hidden lg:block"}>
           <ImportCard
@@ -250,6 +296,7 @@ export function ArticleImportPage() {
             endpoint="/api/admin/articles/import-markdown"
             status={markdownStatus}
             message={markdownMessage}
+            collectionId={collectionId}
             onStatusChange={(status, message) =>
               setModeStatus("markdown", status, message)
             }
@@ -267,6 +314,7 @@ export function ArticleImportPage() {
             endpoint="/api/admin/articles/import-zip"
             status={zipStatus}
             message={zipMessage}
+            collectionId={collectionId}
             onStatusChange={(status, message) => setModeStatus("zip", status, message)}
             onSuccess={setArticle}
           />
@@ -281,6 +329,7 @@ export function ArticleImportPage() {
             endpoint="/api/admin/articles/import-docx"
             status={docxStatus}
             message={docxMessage}
+            collectionId={collectionId}
             onStatusChange={(status, message) => setModeStatus("docx", status, message)}
             onSuccess={setArticle}
           />

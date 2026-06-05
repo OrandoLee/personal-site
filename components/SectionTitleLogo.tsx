@@ -12,6 +12,7 @@ type SectionTitleLogoProps = {
   mainRatio: string;
   maxWidth?: string;
   tagline: string;
+  taglineOffset?: string;
   taglineRatio: string;
   taglineWidth?: string;
 };
@@ -21,6 +22,7 @@ type LogoStyle = CSSProperties & {
   "--section-title-main-ratio": string;
   "--section-title-max-width": string;
   "--section-title-tagline": string;
+  "--section-title-tagline-offset": string;
   "--section-title-tagline-ratio": string;
   "--section-title-tagline-width": string;
 };
@@ -33,6 +35,7 @@ export function SectionTitleLogo({
   mainRatio,
   maxWidth = "440px",
   tagline,
+  taglineOffset = "0px",
   taglineRatio,
   taglineWidth = "58%"
 }: SectionTitleLogoProps) {
@@ -81,6 +84,7 @@ export function SectionTitleLogo({
           "--section-title-main-ratio": mainRatio,
           "--section-title-max-width": maxWidth,
           "--section-title-tagline": `url("${tagline}")`,
+          "--section-title-tagline-offset": taglineOffset,
           "--section-title-tagline-ratio": taglineRatio,
           "--section-title-tagline-width": taglineWidth
         } as LogoStyle

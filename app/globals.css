@@ -329,6 +329,7 @@ video {
   width: min(100%, var(--section-title-tagline-width));
   aspect-ratio: var(--section-title-tagline-ratio);
   margin-top: 0.5rem;
+  margin-left: var(--section-title-tagline-offset);
   mask-image: var(--section-title-tagline);
   opacity: 0;
   transform: translateX(-12px);

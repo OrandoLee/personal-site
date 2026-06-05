@@ -23,6 +23,7 @@ export default async function GalleryPage() {
             mainRatio="500 / 150"
             maxWidth="420px"
             tagline="/section-logos/gallery-tagline.svg"
+            taglineOffset="0.9rem"
             taglineRatio="1265 / 90"
             taglineWidth="88%"
           />

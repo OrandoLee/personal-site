@@ -40,6 +40,7 @@ export default async function ArticlesPage({ searchParams }: ArticlesPageProps) 
           mainRatio="960 / 150"
           maxWidth="520px"
           tagline="/section-logos/article-tagline.svg"
+          taglineOffset="0.35rem"
           taglineRatio="1660 / 90"
           taglineWidth="82%"
         />

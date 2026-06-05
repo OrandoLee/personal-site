@@ -71,7 +71,6 @@ export const articleCollectionSchema = z.object({
   cover: optionalText,
   published: z.boolean().default(false),
   featured: z.boolean().default(false),
-  sortOrder: z.coerce.number().int().default(100),
   articleIds: z.array(z.string().trim().min(1)).default([])
 });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type {
   AdminArticle,
@@ -19,7 +19,6 @@ type CollectionForm = {
   cover: string;
   published: boolean;
   featured: boolean;
-  sortOrder: number;
   articleIds: string[];
 };
 
@@ -30,15 +29,26 @@ const emptyCollectionForm: CollectionForm = {
   cover: "",
   published: false,
   featured: false,
-  sortOrder: 100,
   articleIds: []
 };
+
+function articleMatches(article: AdminArticle, query: string) {
+  if (!query) {
+    return true;
+  }
+
+  return [article.title, article.slug, article.summary, article.category]
+    .join(" ")
+    .toLowerCase()
+    .includes(query);
+}
 
 export function ArticleCollectionsManager() {
   const [articles, setArticles] = useState<AdminArticle[]>([]);
   const [collections, setCollections] = useState<AdminArticleCollection[]>([]);
   const [form, setForm] = useState<CollectionForm>(emptyCollectionForm);
   const [message, setMessage] = useState("");
+  const [articleSearch, setArticleSearch] = useState("");
 
   const loadData = useCallback(async () => {
     const [articleResponse, collectionResponse] = await Promise.all([
@@ -60,6 +70,29 @@ export function ArticleCollectionsManager() {
     void loadData();
   }, [loadData]);
 
+  const selectedArticles = useMemo(
+    () =>
+      form.articleIds
+        .map((articleId) => articles.find((article) => article.id === articleId))
+        .filter((article): article is AdminArticle => Boolean(article)),
+    [articles, form.articleIds]
+  );
+
+  const availableArticles = useMemo(() => {
+    const query = articleSearch.trim().toLowerCase();
+
+    return articles.filter(
+      (article) =>
+        !form.articleIds.includes(article.id) && articleMatches(article, query)
+    );
+  }, [articleSearch, articles, form.articleIds]);
+
+  function resetForm() {
+    setForm(emptyCollectionForm);
+    setMessage("");
+    setArticleSearch("");
+  }
+
   function editCollection(collection: AdminArticleCollection) {
     setForm({
       id: collection.id,
@@ -69,18 +102,24 @@ export function ArticleCollectionsManager() {
       cover: collection.cover ?? "",
       published: collection.published,
       featured: collection.featured,
-      sortOrder: collection.sortOrder,
       articleIds: collection.articleIds
     });
     setMessage("");
+    setArticleSearch("");
   }
 
-  function setArticleChecked(articleId: string, checked: boolean) {
+  function addArticle(articleId: string) {
+    setForm((current) =>
+      current.articleIds.includes(articleId)
+        ? current
+        : { ...current, articleIds: [...current.articleIds, articleId] }
+    );
+  }
+
+  function removeArticle(articleId: string) {
     setForm((current) => ({
       ...current,
-      articleIds: checked
-        ? [...current.articleIds, articleId]
-        : current.articleIds.filter((id) => id !== articleId)
+      articleIds: current.articleIds.filter((id) => id !== articleId)
     }));
   }
 
@@ -107,8 +146,8 @@ export function ArticleCollectionsManager() {
       return;
     }
 
+    resetForm();
     setMessage("合集已保存。");
-    setForm(emptyCollectionForm);
     await loadData();
   }
 
@@ -129,15 +168,12 @@ export function ArticleCollectionsManager() {
         <div>
           <h2 className="font-serif text-2xl font-semibold">文档合集</h2>
           <p className="mt-1 text-sm leading-6 text-zinc-500">
-            新建合集后，可以勾选以前的文档；上传新文档时也能直接加入合集。
+            创建合集后，可以从已有文档里搜索添加；上传新文档时也能直接加入合集。
           </p>
         </div>
         <button
           type="button"
-          onClick={() => {
-            setForm(emptyCollectionForm);
-            setMessage("");
-          }}
+          onClick={resetForm}
           className="rounded-full border border-white/10 px-4 py-2 text-sm text-zinc-200 transition hover:border-white/30"
         >
           新建合集
@@ -237,7 +273,7 @@ export function ArticleCollectionsManager() {
             className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm outline-none focus:border-white/40"
             placeholder="封面 URL（可选）"
           />
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             <label className="flex items-center gap-2 text-sm text-zinc-300">
               <input
                 type="checkbox"
@@ -264,45 +300,107 @@ export function ArticleCollectionsManager() {
               />
               置顶
             </label>
-            <input
-              type="number"
-              value={form.sortOrder}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  sortOrder: Number(event.target.value)
-                }))
-              }
-              className="rounded-2xl border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-white/40"
-              placeholder="排序"
-            />
           </div>
-          <div>
-            <p className="mb-3 text-sm text-zinc-400">选择合集内文档</p>
-            <div className="max-h-72 overflow-auto rounded-2xl border border-white/10">
-              {articles.map((article) => (
-                <label
+
+          <div className="grid gap-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 className="text-sm font-medium text-zinc-200">合集内文档</h3>
+                <p className="mt-1 text-xs text-zinc-500">
+                  已加入 {selectedArticles.length} 篇文档
+                </p>
+              </div>
+              <Link
+                href="/dashboard/articles/import"
+                className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-zinc-300 transition hover:border-white/30"
+              >
+                上传新文档
+              </Link>
+            </div>
+
+            <div className="grid gap-2">
+              {selectedArticles.map((article) => (
+                <article
                   key={article.id}
-                  className="flex items-start gap-3 border-b border-white/5 px-4 py-3 text-sm last:border-b-0"
+                  className="flex items-start justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3"
                 >
-                  <input
-                    type="checkbox"
-                    checked={form.articleIds.includes(article.id)}
-                    onChange={(event) =>
-                      setArticleChecked(article.id, event.target.checked)
-                    }
-                    className="mt-1"
-                  />
-                  <span>
-                    <span className="block text-zinc-200">{article.title}</span>
-                    <span className="mt-1 block text-xs text-zinc-500">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm text-white">{article.title}</p>
+                    <p className="mt-1 truncate text-xs text-zinc-500">
                       /{article.slug}
-                    </span>
-                  </span>
-                </label>
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeArticle(article.id)}
+                    className="shrink-0 rounded-full border border-red-400/30 px-3 py-1 text-xs text-red-200"
+                  >
+                    移出
+                  </button>
+                </article>
               ))}
+              {selectedArticles.length === 0 ? (
+                <p className="rounded-2xl border border-dashed border-white/10 px-4 py-5 text-sm text-zinc-500">
+                  还没有加入文档。请在下方搜索已有文档并点击“加入合集”。
+                </p>
+              ) : null}
+            </div>
+
+            <div className="border-t border-white/10 pt-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <h3 className="text-sm font-medium text-zinc-200">添加已有文档</h3>
+                <input
+                  value={articleSearch}
+                  onChange={(event) => setArticleSearch(event.target.value)}
+                  className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-white/40 sm:w-72"
+                  placeholder="搜索标题、slug、摘要"
+                />
+              </div>
+
+              <div className="mt-3 max-h-80 overflow-auto rounded-2xl border border-white/10">
+                {availableArticles.map((article) => (
+                  <article
+                    key={article.id}
+                    className="flex items-start justify-between gap-3 border-b border-white/5 px-4 py-3 last:border-b-0"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm text-zinc-200">
+                        {article.title}
+                      </p>
+                      <p className="mt-1 truncate text-xs text-zinc-500">
+                        /{article.slug}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => addArticle(article.id)}
+                      className="shrink-0 rounded-full bg-white px-3 py-1 text-xs text-zinc-950"
+                    >
+                      加入合集
+                    </button>
+                  </article>
+                ))}
+                {availableArticles.length === 0 ? (
+                  <div className="grid gap-3 px-4 py-5 text-sm text-zinc-500">
+                    <p>
+                      {articles.length === 0
+                        ? "还没有可添加的文档。"
+                        : "没有找到匹配的文档。"}
+                    </p>
+                    {articles.length === 0 ? (
+                      <Link
+                        href="/dashboard/articles/import"
+                        className="w-fit rounded-full bg-white px-4 py-2 text-xs text-zinc-950"
+                      >
+                        去上传文档
+                      </Link>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
             </div>
           </div>
+
           <div className="flex flex-wrap items-center gap-3">
             <button
               type="button"
@@ -454,7 +552,7 @@ export function ArticlesManager() {
                         : "border-white/10 text-zinc-500"
                     )}
                   >
-                    ★ 置顶
+                    置顶
                   </button>
                 </td>
                 <td className="py-4 pr-4">

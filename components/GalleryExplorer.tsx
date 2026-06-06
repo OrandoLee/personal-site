@@ -357,12 +357,17 @@ export function GalleryExplorer({ items }: GalleryExplorerProps) {
 
       <section className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {filteredItems.map((item, index) => (
-          <GalleryCard
+          <div
             key={item.id}
-            item={item}
-            priority={index < 2}
-            onPreview={openPreview}
-          />
+            className="filter-result-enter"
+            style={{ animationDelay: `${Math.min(index, 8) * 45}ms` }}
+          >
+            <GalleryCard
+              item={item}
+              priority={index < 2}
+              onPreview={openPreview}
+            />
+          </div>
         ))}
       </section>
 

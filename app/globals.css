@@ -507,6 +507,11 @@ video {
   transform-origin: 50% 24px;
 }
 
+.filter-result-enter {
+  animation: filter-result-enter 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: 50% 12px;
+}
+
 .date-counter,
 .display-serif {
   font-family: Georgia, "Times New Roman", serif;
@@ -537,6 +542,18 @@ video {
   }
 }
 
+@keyframes filter-result-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .orask-title-logo__main,
   .orask-title-logo__tagline,
@@ -554,7 +571,8 @@ video {
     animation: none;
   }
 
-  .page-transition {
+  .page-transition,
+  .filter-result-enter {
     animation: none;
   }
 }

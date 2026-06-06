@@ -82,12 +82,16 @@ export default async function ArticlesPage({ searchParams }: ArticlesPageProps) 
       </div>
 
       {collections.length > 0 ? (
-        <section className="mb-10 grid gap-5 md:grid-cols-2">
-          {collections.map((collection) => (
+        <section
+          key={`collections-${activeCategory}`}
+          className="mb-10 grid gap-5 md:grid-cols-2"
+        >
+          {collections.map((collection, index) => (
             <Link
               key={collection.slug}
               href={`/articles/collections/${collection.slug}`}
-              className="group grid overflow-hidden rounded-3xl border border-archive-line bg-archive-paper2 transition hover:-translate-y-0.5 hover:border-archive-ink"
+              className="filter-result-enter group grid overflow-hidden rounded-3xl border border-archive-line bg-archive-paper2 transition hover:-translate-y-0.5 hover:border-archive-ink"
+              style={{ animationDelay: `${Math.min(index, 8) * 45}ms` }}
             >
               {collection.cover ? (
                 <img
@@ -114,9 +118,15 @@ export default async function ArticlesPage({ searchParams }: ArticlesPageProps) 
         </section>
       ) : null}
 
-      <section className="grid gap-5">
-        {filteredArticles.map((article) => (
-          <ArticleCard key={article.slug} article={article} />
+      <section key={`articles-${activeCategory}`} className="grid gap-5">
+        {filteredArticles.map((article, index) => (
+          <div
+            key={article.slug}
+            className="filter-result-enter"
+            style={{ animationDelay: `${Math.min(index, 8) * 45}ms` }}
+          >
+            <ArticleCard article={article} />
+          </div>
         ))}
       </section>
     </main>

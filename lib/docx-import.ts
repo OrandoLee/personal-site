@@ -134,10 +134,11 @@ function renderRun(runXml: string, imageUrls: Map<string, string>) {
         return "\t";
       }
 
-      if (
-        match[0].startsWith("<w:lastRenderedPageBreak") ||
-        /<w:br\b[^>]*w:type="page"/i.test(match[0])
-      ) {
+      if (match[0].startsWith("<w:lastRenderedPageBreak")) {
+        return "";
+      }
+
+      if (/<w:br\b[^>]*w:type="page"/i.test(match[0])) {
         return `\n\n${docxPageBreakMarker}\n\n`;
       }
 
@@ -333,10 +334,11 @@ function plainTextFromXml(value: string) {
         return "\t";
       }
 
-      if (
-        match[0].startsWith("<w:lastRenderedPageBreak") ||
-        /<w:br\b[^>]*w:type="page"/i.test(match[0])
-      ) {
+      if (match[0].startsWith("<w:lastRenderedPageBreak")) {
+        return "";
+      }
+
+      if (/<w:br\b[^>]*w:type="page"/i.test(match[0])) {
         return `\n\n${docxPageBreakMarker}\n\n`;
       }
 

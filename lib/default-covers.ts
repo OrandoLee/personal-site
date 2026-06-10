@@ -52,14 +52,11 @@ function keyFromSetting(value: string): DefaultCoverKey | null {
   return isDefaultCoverKey(key) ? key : null;
 }
 
-async function ensureSettingsTable() {
-  await prisma.$executeRaw`
-    CREATE TABLE IF NOT EXISTS "SiteSetting" (
-      "key" TEXT PRIMARY KEY,
-      "value" TEXT NOT NULL,
-      "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT now()
-    )
-  `;
+function isMissingSettingsTableError(error: unknown) {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === "P2021"
+  );
 }
 
 export function defaultCoverKeyForArticleCategory(
@@ -79,17 +76,22 @@ export function defaultCoverKeyForArticleCategory(
 }
 
 export async function getDefaultCoverMap() {
-  await ensureSettingsTable();
-
   const keys = defaultCoverKeys.map(settingKey);
-  const rows = await prisma.$queryRaw<Array<{ key: string; value: string }>>(
-    Prisma.sql`
-      SELECT "key", "value"
-      FROM "SiteSetting"
-      WHERE "key" IN (${Prisma.join(keys)})
-    `
-  );
   const covers = { ...fallbackDefaultCovers };
+  let rows: Array<{ key: string; value: string }>;
+
+  try {
+    rows = await prisma.siteSetting.findMany({
+      where: { key: { in: keys } },
+      select: { key: true, value: true }
+    });
+  } catch (error) {
+    if (isMissingSettingsTableError(error)) {
+      return covers;
+    }
+
+    throw error;
+  }
 
   for (const row of rows) {
     const key = keyFromSetting(row.key);
@@ -117,8 +119,6 @@ export async function getDefaultCovers(): Promise<DefaultCover[]> {
 export async function setDefaultCoverOverrides(
   covers: Partial<Record<DefaultCoverKey, string | null>>
 ) {
-  await ensureSettingsTable();
-
   for (const key of defaultCoverKeys) {
     if (!(key in covers)) {
       continue;
@@ -127,19 +127,17 @@ export async function setDefaultCoverOverrides(
     const value = covers[key]?.trim();
 
     if (!value || value === fallbackDefaultCovers[key]) {
-      await prisma.$executeRaw`
-        DELETE FROM "SiteSetting"
-        WHERE "key" = ${settingKey(key)}
-      `;
+      await prisma.siteSetting.deleteMany({
+        where: { key: settingKey(key) }
+      });
       continue;
     }
 
-    await prisma.$executeRaw`
-      INSERT INTO "SiteSetting" ("key", "value", "updatedAt")
-      VALUES (${settingKey(key)}, ${value}, now())
-      ON CONFLICT ("key")
-      DO UPDATE SET "value" = EXCLUDED."value", "updatedAt" = now()
-    `;
+    await prisma.siteSetting.upsert({
+      where: { key: settingKey(key) },
+      update: { value },
+      create: { key: settingKey(key), value }
+    });
   }
 
   return getDefaultCovers();

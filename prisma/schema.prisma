@@ -135,3 +135,9 @@ model OraskMessage {
   @@index([read, createdAt])
   @@index([email, createdAt])
 }
+
+model SiteSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+}

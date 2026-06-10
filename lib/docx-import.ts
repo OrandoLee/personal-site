@@ -15,6 +15,9 @@ const imageContentTypes: Record<string, string> = {
   ".webp": "image/webp"
 };
 
+const storyPartPattern =
+  /^word\/(?:footnotes|endnotes|comments|header\d+|footer\d+)\.xml$/i;
+
 function todayInput() {
   const parts = new Intl.DateTimeFormat("zh-CN", {
     timeZone: "Asia/Shanghai",
@@ -103,10 +106,6 @@ async function uploadDocxImages(zip: JSZip, relationships: Map<string, string>) 
 }
 
 function renderRun(runXml: string, imageUrls: Map<string, string>) {
-  if (/<w:br\b[^>]*w:type="page"[^>]*\/>|<w:lastRenderedPageBreak\b/i.test(runXml)) {
-    return `\n\n${docxPageBreakMarker}\n\n`;
-  }
-
   const imageId =
     runXml.match(/r:embed="([^"]+)"/)?.[1] ??
     runXml.match(/r:link="([^"]+)"/)?.[1] ??
@@ -117,10 +116,21 @@ function renderRun(runXml: string, imageUrls: Map<string, string>) {
     return `\n\n![docx image](${imageUrl})\n\n`;
   }
 
-  const pieces = Array.from(runXml.matchAll(/<w:t\b[^>]*>([\s\S]*?)<\/w:t>|<w:tab\s*\/>|<w:br\s*\/>/g))
+  const pieces = Array.from(
+    runXml.matchAll(
+      /<w:t\b[^>]*>([\s\S]*?)<\/w:t>|<w:tab\b[^>]*\/>|<w:br\b[^>]*\/>|<w:lastRenderedPageBreak\b[^>]*\/>/g
+    )
+  )
     .map((match) => {
       if (match[0].startsWith("<w:tab")) {
         return "\t";
+      }
+
+      if (
+        match[0].startsWith("<w:lastRenderedPageBreak") ||
+        /<w:br\b[^>]*w:type="page"/i.test(match[0])
+      ) {
+        return `\n\n${docxPageBreakMarker}\n\n`;
       }
 
       if (match[0].startsWith("<w:br")) {
@@ -135,9 +145,20 @@ function renderRun(runXml: string, imageUrls: Map<string, string>) {
     return "";
   }
 
-  const escaped = escapeMarkdown(pieces);
+  const pageBreakPattern = new RegExp(`(${docxPageBreakMarker})`, "g");
+  const escaped = pieces
+    .split(pageBreakPattern)
+    .map((piece) =>
+      piece === docxPageBreakMarker ? docxPageBreakMarker : escapeMarkdown(piece)
+    )
+    .join("");
   const bold = /<w:b\b/i.test(runXml);
   const italic = /<w:i\b/i.test(runXml);
+  const hasPageBreak = escaped.includes(docxPageBreakMarker);
+
+  if (hasPageBreak) {
+    return escaped;
+  }
 
   if (bold && italic) {
     return `***${escaped}***`;
@@ -233,17 +254,85 @@ function renderTable(tableXml: string) {
   ].join("\n");
 }
 
+function matchingCloseTag(xml: string, startIndex: number, tagName: "w:p" | "w:tbl") {
+  const tagPattern = new RegExp(`<\\/?${tagName}\\b[^>]*>`, "gi");
+  tagPattern.lastIndex = startIndex;
+
+  let depth = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = tagPattern.exec(xml))) {
+    if (match[0].startsWith("</")) {
+      depth -= 1;
+
+      if (depth === 0) {
+        return tagPattern.lastIndex;
+      }
+    } else if (!match[0].endsWith("/>")) {
+      depth += 1;
+    }
+  }
+
+  return -1;
+}
+
+function renderBodyBlocks(bodyXml: string, imageUrls: Map<string, string>) {
+  const blocks: string[] = [];
+  const blockPattern = /<w:(p|tbl)\b[^>]*>/gi;
+  let cursor = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = blockPattern.exec(bodyXml))) {
+    if (match.index < cursor) {
+      continue;
+    }
+
+    const tagName = `w:${match[1]}` as "w:p" | "w:tbl";
+    const endIndex = matchingCloseTag(bodyXml, match.index, tagName);
+
+    if (endIndex === -1) {
+      continue;
+    }
+
+    const blockXml = bodyXml.slice(match.index, endIndex);
+    const rendered =
+      tagName === "w:tbl"
+        ? renderTable(blockXml)
+        : renderParagraph(blockXml, imageUrls);
+
+    if (rendered) {
+      blocks.push(rendered);
+    }
+
+    cursor = endIndex;
+    blockPattern.lastIndex = endIndex;
+  }
+
+  return blocks;
+}
+
 function renderDocumentMarkdown(documentXml: string, imageUrls: Map<string, string>) {
   const body = documentXml.match(/<w:body\b[^>]*>([\s\S]*?)<\/w:body>/)?.[1] ?? documentXml;
-  const blocks = Array.from(body.matchAll(/<w:p\b[\s\S]*?<\/w:p>|<w:tbl\b[\s\S]*?<\/w:tbl>/g))
-    .map((match) =>
-      match[0].startsWith("<w:tbl")
-        ? renderTable(match[0])
-        : renderParagraph(match[0], imageUrls)
-    )
-    .filter(Boolean);
+  const blocks = renderBodyBlocks(body, imageUrls);
 
   return blocks.join("\n\n").replace(/\n{3,}/g, "\n\n").trim();
+}
+
+async function renderStoryParts(zip: JSZip, imageUrls: Map<string, string>) {
+  const storyEntries = zip
+    .filter((relativePath) => storyPartPattern.test(relativePath))
+    .sort((left, right) => left.name.localeCompare(right.name));
+  const renderedParts: string[] = [];
+
+  for (const entry of storyEntries) {
+    const markdown = renderDocumentMarkdown(await entry.async("text"), imageUrls);
+
+    if (markdown) {
+      renderedParts.push(markdown);
+    }
+  }
+
+  return renderedParts;
 }
 
 function stripMarkdown(value: string) {
@@ -278,7 +367,11 @@ export async function parseDocxArticle(file: File): Promise<ImportedMarkdownArti
     ? parseRelationships(await relationshipsEntry.async("text"))
     : new Map<string, string>();
   const imageUrls = await uploadDocxImages(zip, relationships);
-  const markdown = renderDocumentMarkdown(await documentEntry.async("text"), imageUrls);
+  const markdownParts = [
+    renderDocumentMarkdown(await documentEntry.async("text"), imageUrls),
+    ...(await renderStoryParts(zip, imageUrls))
+  ].filter(Boolean);
+  const markdown = markdownParts.join("\n\n").replace(/\n{3,}/g, "\n\n").trim();
 
   if (!markdown) {
     throw new Error("No readable text was found in this DOCX file.");

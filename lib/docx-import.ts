@@ -17,6 +17,7 @@ const imageContentTypes: Record<string, string> = {
 
 const storyPartPattern =
   /^word\/(?:footnotes|endnotes|comments|header\d+|footer\d+)\.xml$/i;
+const minimumRenderedTextCoverage = 0.98;
 
 function todayInput() {
   const parts = new Intl.DateTimeFormat("zh-CN", {
@@ -43,6 +44,17 @@ function decodeXml(value: string) {
 
 function escapeMarkdown(value: string) {
   return value.replace(/([\\`*_{}[\]()#+.!|-])/g, "\\$1");
+}
+
+function escapeMarkdownPreservingPageBreaks(value: string) {
+  const pageBreakPattern = new RegExp(`(${docxPageBreakMarker})`, "g");
+
+  return value
+    .split(pageBreakPattern)
+    .map((piece) =>
+      piece === docxPageBreakMarker ? docxPageBreakMarker : escapeMarkdown(piece)
+    )
+    .join("");
 }
 
 function stripXmlTags(value: string) {
@@ -112,10 +124,6 @@ function renderRun(runXml: string, imageUrls: Map<string, string>) {
     "";
   const imageUrl = imageId ? imageUrls.get(imageId) : undefined;
 
-  if (imageUrl) {
-    return `\n\n![docx image](${imageUrl})\n\n`;
-  }
-
   const pieces = Array.from(
     runXml.matchAll(
       /<w:t\b[^>]*>([\s\S]*?)<\/w:t>|<w:tab\b[^>]*\/>|<w:br\b[^>]*\/>|<w:lastRenderedPageBreak\b[^>]*\/>/g
@@ -141,38 +149,34 @@ function renderRun(runXml: string, imageUrls: Map<string, string>) {
     })
     .join("");
 
-  if (!pieces) {
-    return "";
-  }
+  const imageMarkdown = imageUrl ? `\n\n![docx image](${imageUrl})\n\n` : "";
 
-  const pageBreakPattern = new RegExp(`(${docxPageBreakMarker})`, "g");
-  const escaped = pieces
-    .split(pageBreakPattern)
-    .map((piece) =>
-      piece === docxPageBreakMarker ? docxPageBreakMarker : escapeMarkdown(piece)
-    )
-    .join("");
+  const escaped = escapeMarkdownPreservingPageBreaks(pieces);
   const bold = /<w:b\b/i.test(runXml);
   const italic = /<w:i\b/i.test(runXml);
   const hasPageBreak = escaped.includes(docxPageBreakMarker);
 
+  if (!escaped) {
+    return imageMarkdown;
+  }
+
   if (hasPageBreak) {
-    return escaped;
+    return `${imageMarkdown}${escaped}`;
   }
 
   if (bold && italic) {
-    return `***${escaped}***`;
+    return `${imageMarkdown}***${escaped}***`;
   }
 
   if (bold) {
-    return `**${escaped}**`;
+    return `${imageMarkdown}**${escaped}**`;
   }
 
   if (italic) {
-    return `*${escaped}*`;
+    return `${imageMarkdown}*${escaped}*`;
   }
 
-  return escaped;
+  return `${imageMarkdown}${escaped}`;
 }
 
 function paragraphStyle(paragraphXml: string) {
@@ -318,6 +322,108 @@ function renderDocumentMarkdown(documentXml: string, imageUrls: Map<string, stri
   return blocks.join("\n\n").replace(/\n{3,}/g, "\n\n").trim();
 }
 
+function plainTextFromXml(value: string) {
+  return Array.from(
+    value.matchAll(
+      /<w:t\b[^>]*>([\s\S]*?)<\/w:t>|<w:tab\b[^>]*\/>|<w:br\b[^>]*\/>|<w:lastRenderedPageBreak\b[^>]*\/>/g
+    )
+  )
+    .map((match) => {
+      if (match[0].startsWith("<w:tab")) {
+        return "\t";
+      }
+
+      if (
+        match[0].startsWith("<w:lastRenderedPageBreak") ||
+        /<w:br\b[^>]*w:type="page"/i.test(match[0])
+      ) {
+        return `\n\n${docxPageBreakMarker}\n\n`;
+      }
+
+      if (match[0].startsWith("<w:br")) {
+        return "\n";
+      }
+
+      return decodeXml(match[1] ?? "");
+    })
+    .join("");
+}
+
+function renderPlainTable(tableXml: string) {
+  return Array.from(tableXml.matchAll(/<w:tr\b[\s\S]*?<\/w:tr>/g))
+    .map((rowMatch) =>
+      Array.from(rowMatch[0].matchAll(/<w:tc\b[\s\S]*?<\/w:tc>/g))
+        .map((cellMatch) =>
+          plainTextFromXml(cellMatch[0]).replace(/\s+/g, " ").trim()
+        )
+        .filter(Boolean)
+        .join(" | ")
+    )
+    .filter(Boolean)
+    .join("\n");
+}
+
+function renderPlainBodyBlocks(bodyXml: string) {
+  const blocks: string[] = [];
+  const blockPattern = /<w:(p|tbl)\b[^>]*>/gi;
+  let cursor = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = blockPattern.exec(bodyXml))) {
+    if (match.index < cursor) {
+      continue;
+    }
+
+    const tagName = `w:${match[1]}` as "w:p" | "w:tbl";
+    const endIndex = matchingCloseTag(bodyXml, match.index, tagName);
+
+    if (endIndex === -1) {
+      continue;
+    }
+
+    const blockXml = bodyXml.slice(match.index, endIndex);
+    const text =
+      tagName === "w:tbl" ? renderPlainTable(blockXml) : plainTextFromXml(blockXml);
+
+    if (text.trim()) {
+      blocks.push(escapeMarkdownPreservingPageBreaks(text.trim()));
+    }
+
+    cursor = endIndex;
+    blockPattern.lastIndex = endIndex;
+  }
+
+  return blocks;
+}
+
+function renderPlainDocumentMarkdown(documentXml: string) {
+  const body = documentXml.match(/<w:body\b[^>]*>([\s\S]*?)<\/w:body>/)?.[1] ?? documentXml;
+
+  return renderPlainBodyBlocks(body)
+    .join("\n\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function normalizedTextLength(value: string) {
+  return stripMarkdown(value).replace(/\s+/g, "").length;
+}
+
+function chooseCoveredMarkdown(renderedMarkdown: string, plainMarkdown: string) {
+  const renderedLength = normalizedTextLength(renderedMarkdown);
+  const plainLength = normalizedTextLength(plainMarkdown);
+
+  if (plainLength === 0) {
+    return renderedMarkdown;
+  }
+
+  if (renderedLength / plainLength >= minimumRenderedTextCoverage) {
+    return renderedMarkdown;
+  }
+
+  return plainMarkdown;
+}
+
 async function renderStoryParts(zip: JSZip, imageUrls: Map<string, string>) {
   const storyEntries = zip
     .filter((relativePath) => storyPartPattern.test(relativePath))
@@ -326,6 +432,23 @@ async function renderStoryParts(zip: JSZip, imageUrls: Map<string, string>) {
 
   for (const entry of storyEntries) {
     const markdown = renderDocumentMarkdown(await entry.async("text"), imageUrls);
+
+    if (markdown) {
+      renderedParts.push(markdown);
+    }
+  }
+
+  return renderedParts;
+}
+
+async function renderPlainStoryParts(zip: JSZip) {
+  const storyEntries = zip
+    .filter((relativePath) => storyPartPattern.test(relativePath))
+    .sort((left, right) => left.name.localeCompare(right.name));
+  const renderedParts: string[] = [];
+
+  for (const entry of storyEntries) {
+    const markdown = renderPlainDocumentMarkdown(await entry.async("text"));
 
     if (markdown) {
       renderedParts.push(markdown);
@@ -367,11 +490,18 @@ export async function parseDocxArticle(file: File): Promise<ImportedMarkdownArti
     ? parseRelationships(await relationshipsEntry.async("text"))
     : new Map<string, string>();
   const imageUrls = await uploadDocxImages(zip, relationships);
+  const documentXml = await documentEntry.async("text");
   const markdownParts = [
-    renderDocumentMarkdown(await documentEntry.async("text"), imageUrls),
+    renderDocumentMarkdown(documentXml, imageUrls),
     ...(await renderStoryParts(zip, imageUrls))
   ].filter(Boolean);
-  const markdown = markdownParts.join("\n\n").replace(/\n{3,}/g, "\n\n").trim();
+  const renderedMarkdown = markdownParts.join("\n\n").replace(/\n{3,}/g, "\n\n").trim();
+  const plainMarkdownParts = [
+    renderPlainDocumentMarkdown(documentXml),
+    ...(await renderPlainStoryParts(zip))
+  ].filter(Boolean);
+  const plainMarkdown = plainMarkdownParts.join("\n\n").replace(/\n{3,}/g, "\n\n").trim();
+  const markdown = chooseCoveredMarkdown(renderedMarkdown, plainMarkdown);
 
   if (!markdown) {
     throw new Error("No readable text was found in this DOCX file.");

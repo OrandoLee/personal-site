@@ -84,6 +84,9 @@ export type AdminLabProject = {
   openMode: LabOpenMode;
   embedUrl?: string;
   externalUrl?: string;
+  githubRepoUrl?: string;
+  githubCreatedAt?: string;
+  githubUpdatedAt?: string;
   internalPath?: string;
   sortOrder: number;
   isPublished: boolean;

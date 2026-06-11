@@ -1,0 +1,2 @@
+ALTER TABLE "LabProject"
+ADD COLUMN IF NOT EXISTS "githubRepoUrl" TEXT;

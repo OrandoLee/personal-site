@@ -517,6 +517,12 @@ video {
   font-family: Georgia, "Times New Roman", serif;
 }
 
+.lab-time-font {
+  font-family: "Courier New", Courier, "Lucida Console", monospace;
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: 0.02em;
+}
+
 .date-counter {
   display: inline-block;
   font-variant-numeric: lining-nums tabular-nums;

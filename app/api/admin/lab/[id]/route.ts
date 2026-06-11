@@ -8,6 +8,7 @@ import {
   zodErrorMessage
 } from "@/lib/api-utils";
 import { serializeLabProject } from "@/lib/content-serializers";
+import { enrichLabProjectWithGitHubTimes } from "@/lib/lab-project-enrichment";
 import { prisma } from "@/lib/db";
 
 export const runtime = "nodejs";
@@ -32,7 +33,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
     return errorJson("LAB 项目不存在。", 404);
   }
 
-  return okJson(serializeLabProject(row));
+  return okJson(await enrichLabProjectWithGitHubTimes(serializeLabProject(row)));
 }
 
 export async function PATCH(request: Request, { params }: RouteContext) {
@@ -52,7 +53,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       data: parsed.data
     });
 
-    return okJson(serializeLabProject(row));
+    return okJson(await enrichLabProjectWithGitHubTimes(serializeLabProject(row)));
   } catch (error) {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&

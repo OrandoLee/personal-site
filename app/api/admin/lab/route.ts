@@ -8,6 +8,10 @@ import {
   zodErrorMessage
 } from "@/lib/api-utils";
 import { serializeLabProject } from "@/lib/content-serializers";
+import {
+  enrichLabProjectWithGitHubTimes,
+  enrichLabProjectsWithGitHubTimes
+} from "@/lib/lab-project-enrichment";
 import { prisma } from "@/lib/db";
 
 export const runtime = "nodejs";
@@ -31,7 +35,8 @@ export async function GET(request: Request) {
             { summary: { contains: search } },
             { description: { contains: search } },
             { category: { contains: search } },
-            { status: { contains: search } }
+            { status: { contains: search } },
+            { githubRepoUrl: { contains: search } }
           ]
         }
       : {})
@@ -45,7 +50,9 @@ export async function GET(request: Request) {
     ]
   });
 
-  return okJson(rows.map(serializeLabProject));
+  return okJson(
+    await enrichLabProjectsWithGitHubTimes(rows.map(serializeLabProject))
+  );
 }
 
 export async function POST(request: Request) {
@@ -64,7 +71,9 @@ export async function POST(request: Request) {
       data: parsed.data
     });
 
-    return okJson(serializeLabProject(row), { status: 201 });
+    return okJson(await enrichLabProjectWithGitHubTimes(serializeLabProject(row)), {
+      status: 201
+    });
   } catch (error) {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&

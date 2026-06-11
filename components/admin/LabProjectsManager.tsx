@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { UploadField } from "@/components/admin/UploadField";
 import type { AdminLabProject, ApiResult } from "@/components/admin/types";
@@ -11,6 +11,7 @@ import {
   type LabCategoryKey,
   type LabOpenMode
 } from "@/data/lab";
+import { formatShanghaiDateTime } from "@/lib/date-format";
 import { cn } from "@/lib/classNames";
 import { slugify } from "@/lib/slug";
 
@@ -25,6 +26,7 @@ type LabProjectForm = {
   openMode: LabOpenMode;
   embedUrl: string;
   externalUrl: string;
+  githubRepoUrl: string;
   internalPath: string;
   sortOrder: number;
   isPublished: boolean;
@@ -41,6 +43,7 @@ const defaultValues: LabProjectForm = {
   openMode: "embed",
   embedUrl: "",
   externalUrl: "",
+  githubRepoUrl: "",
   internalPath: "",
   sortOrder: 100,
   isPublished: false
@@ -69,6 +72,7 @@ function itemToForm(item: AdminLabProject): LabProjectForm {
     openMode: item.openMode,
     embedUrl: item.embedUrl ?? "",
     externalUrl: item.externalUrl ?? "",
+    githubRepoUrl: item.githubRepoUrl ?? "",
     internalPath: item.internalPath ?? "",
     sortOrder: item.sortOrder,
     isPublished: item.isPublished
@@ -90,6 +94,7 @@ export function LabProjectsManager() {
     watch,
     formState: { isSubmitting }
   } = useForm<LabProjectForm>({ defaultValues });
+
   const title = watch("title");
   const slug = watch("slug");
   const coverImage = watch("coverImage");
@@ -147,6 +152,7 @@ export function LabProjectsManager() {
       category: labCategoryLabels[values.categoryKey],
       sortOrder: Number(values.sortOrder)
     };
+
     const endpoint = activeItem ? `/api/admin/lab/${activeItem.id}` : "/api/admin/lab";
     const response = await fetch(endpoint, {
       method: activeItem ? "PATCH" : "POST",
@@ -168,7 +174,7 @@ export function LabProjectsManager() {
   }
 
   async function deleteItem(item: AdminLabProject) {
-    if (!window.confirm(`确定删除「${item.title}」？`)) {
+    if (!window.confirm(`确定删除「${item.title}」吗？`)) {
       return;
     }
 
@@ -195,7 +201,7 @@ export function LabProjectsManager() {
           <div>
             <h2 className="font-serif text-2xl font-semibold">LAB 项目管理</h2>
             <p className="mt-1 text-sm text-zinc-500">
-              管理实验入口、嵌入地址、外部链接和公开状态。
+              管理实验入口、嵌入地址、外部链接、GitHub 仓库和公开状态。
             </p>
           </div>
           <button
@@ -254,9 +260,7 @@ export function LabProjectsManager() {
                 <div className="flex flex-wrap items-start gap-3">
                   <div className="min-w-0">
                     <h3 className="text-lg font-medium text-white">{item.title}</h3>
-                    <p className="mt-1 break-all text-xs text-zinc-500">
-                      /lab/{item.slug}
-                    </p>
+                    <p className="mt-1 break-all text-xs text-zinc-500">/lab/{item.slug}</p>
                   </div>
                   <button
                     type="button"
@@ -271,9 +275,7 @@ export function LabProjectsManager() {
                     {item.isPublished ? "已公开" : "隐藏"}
                   </button>
                 </div>
-                <p className="mt-3 text-sm leading-6 text-zinc-400">
-                  {item.summary}
-                </p>
+                <p className="mt-3 text-sm leading-6 text-zinc-400">{item.summary}</p>
                 <div className="mt-3 flex flex-wrap gap-2 text-xs text-zinc-500">
                   <span>{item.category}</span>
                   <span>/</span>
@@ -283,6 +285,22 @@ export function LabProjectsManager() {
                   <span>/</span>
                   <span>排序 {item.sortOrder}</span>
                 </div>
+                {item.githubCreatedAt || item.githubUpdatedAt ? (
+                  <div className="mt-3 flex flex-wrap gap-4 text-xs text-zinc-500">
+                    <span className="lab-time-font">
+                      初次上传{" "}
+                      {item.githubCreatedAt
+                        ? formatShanghaiDateTime(item.githubCreatedAt)
+                        : "未同步"}
+                    </span>
+                    <span className="lab-time-font">
+                      最近更新{" "}
+                      {item.githubUpdatedAt
+                        ? formatShanghaiDateTime(item.githubUpdatedAt)
+                        : "未同步"}
+                    </span>
+                  </div>
+                ) : null}
               </div>
               <div className="flex flex-wrap gap-2 self-start sm:justify-end">
                 <Link
@@ -309,9 +327,7 @@ export function LabProjectsManager() {
             </article>
           ))}
           {items.length === 0 ? (
-            <p className="py-8 text-center text-sm text-zinc-500">
-              暂无 LAB 项目。
-            </p>
+            <p className="py-8 text-center text-sm text-zinc-500">暂无 LAB 项目。</p>
           ) : null}
         </div>
       </section>
@@ -392,6 +408,12 @@ export function LabProjectsManager() {
               placeholder="排序"
             />
           </div>
+
+          <input
+            {...register("githubRepoUrl")}
+            className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-white/40"
+            placeholder="GitHub 仓库地址，例如 https://github.com/owner/repo"
+          />
 
           <UploadField
             label="封面图"

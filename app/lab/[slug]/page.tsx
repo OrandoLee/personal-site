@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { formatShanghaiDateTime } from "@/lib/date-format";
 import { getPublicLabProjectBySlug } from "@/lib/public-content";
 
 type LabDetailPageProps = {
@@ -75,6 +76,38 @@ export default async function LabDetailPage({ params }: LabDetailPageProps) {
         <h1 className="max-w-[760px] font-serif text-5xl font-semibold leading-tight text-archive-ink sm:text-7xl">
           {project.title}
         </h1>
+        {project.githubCreatedAt || project.githubUpdatedAt ? (
+          <div className="mt-8 grid gap-4 border-t border-archive-line pt-5 sm:grid-cols-2">
+            <div>
+              <p className="text-xs uppercase tracking-[0.24em] text-archive-muted">
+                初次上传
+              </p>
+              <p className="mt-2 lab-time-font text-lg text-archive-ink">
+                {project.githubCreatedAt ? (
+                  <time dateTime={project.githubCreatedAt}>
+                    {formatShanghaiDateTime(project.githubCreatedAt)}
+                  </time>
+                ) : (
+                  "未同步"
+                )}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-[0.24em] text-archive-muted">
+                最近更新
+              </p>
+              <p className="mt-2 lab-time-font text-lg text-archive-ink">
+                {project.githubUpdatedAt ? (
+                  <time dateTime={project.githubUpdatedAt}>
+                    {formatShanghaiDateTime(project.githubUpdatedAt)}
+                  </time>
+                ) : (
+                  "未同步"
+                )}
+              </p>
+            </div>
+          </div>
+        ) : null}
         <p className="mt-6 max-w-2xl text-base leading-8 text-archive-muted">
           {project.summary}
         </p>

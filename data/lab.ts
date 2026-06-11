@@ -30,6 +30,9 @@ export type LabProject = {
   openMode: LabOpenMode;
   embedUrl?: string;
   externalUrl?: string;
+  githubRepoUrl?: string;
+  githubCreatedAt?: string;
+  githubUpdatedAt?: string;
   internalPath?: string;
   sortOrder: number;
   isPublished: boolean;

@@ -237,6 +237,7 @@ export function serializeLabProject(row: DbLabProject): LabProject {
     openMode: row.openMode as LabOpenMode,
     embedUrl: row.embedUrl ?? undefined,
     externalUrl: row.externalUrl ?? undefined,
+    githubRepoUrl: row.githubRepoUrl ?? undefined,
     internalPath: row.internalPath ?? undefined,
     sortOrder: row.sortOrder,
     isPublished: row.isPublished,

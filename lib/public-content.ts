@@ -4,6 +4,7 @@ import {
   serializeGalleryItem,
   serializeLabProject
 } from "@/lib/content-serializers";
+import { enrichLabProjectWithGitHubTimes, enrichLabProjectsWithGitHubTimes } from "@/lib/lab-project-enrichment";
 import type { UpdateItem, UpdateType } from "@/data/updates";
 import {
   defaultCoverKeyForArticleCategory,
@@ -127,7 +128,9 @@ export async function getPublicLabProjects(category?: string) {
     ]
   });
 
-  return rows.map(serializeLabProject);
+  const projects = rows.map(serializeLabProject);
+
+  return enrichLabProjectsWithGitHubTimes(projects);
 }
 
 export async function getPublicLabProjectBySlug(slug: string) {
@@ -139,5 +142,5 @@ export async function getPublicLabProjectBySlug(slug: string) {
     return null;
   }
 
-  return serializeLabProject(row);
+  return enrichLabProjectWithGitHubTimes(serializeLabProject(row));
 }

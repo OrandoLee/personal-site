@@ -111,6 +111,7 @@ model LabProject {
   openMode    String
   embedUrl    String?
   externalUrl String?
+  githubRepoUrl String?
   internalPath String?
   sortOrder   Int      @default(100)
   isPublished Boolean  @default(false)

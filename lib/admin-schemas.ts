@@ -117,6 +117,7 @@ export const labProjectSchema = z.object({
   openMode: z.enum(["embed", "external", "internal"]),
   embedUrl: optionalText,
   externalUrl: optionalText,
+  githubRepoUrl: optionalText,
   internalPath: optionalText,
   sortOrder: z.coerce.number().int().default(100),
   isPublished: z.boolean().default(false)

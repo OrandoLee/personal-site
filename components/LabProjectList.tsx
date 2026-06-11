@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { LabProject } from "@/data/lab";
+import { formatShanghaiDateTime } from "@/lib/date-format";
 
 type LabProjectListProps = {
   projects: LabProject[];
@@ -53,6 +54,34 @@ export function LabProjectList({ projects, emptyText }: LabProjectListProps) {
               <p className="mt-4 text-sm leading-7 text-archive-muted">
                 {project.summary}
               </p>
+              {project.githubCreatedAt || project.githubUpdatedAt ? (
+                <dl className="mt-6 grid gap-4 border-t border-archive-line pt-4 text-xs text-archive-muted sm:grid-cols-2">
+                  <div>
+                    <dt className="uppercase tracking-[0.2em]">初次上传</dt>
+                    <dd className="mt-2 lab-time-font text-sm text-archive-ink">
+                      {project.githubCreatedAt ? (
+                        <time dateTime={project.githubCreatedAt}>
+                          {formatShanghaiDateTime(project.githubCreatedAt)}
+                        </time>
+                      ) : (
+                        "未同步"
+                      )}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="uppercase tracking-[0.2em]">最近更新</dt>
+                    <dd className="mt-2 lab-time-font text-sm text-archive-ink">
+                      {project.githubUpdatedAt ? (
+                        <time dateTime={project.githubUpdatedAt}>
+                          {formatShanghaiDateTime(project.githubUpdatedAt)}
+                        </time>
+                      ) : (
+                        "未同步"
+                      )}
+                    </dd>
+                  </div>
+                </dl>
+              ) : null}
             </div>
 
             <div className="mt-8">

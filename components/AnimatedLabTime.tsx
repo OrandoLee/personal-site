@@ -59,13 +59,14 @@ export function AnimatedLabTime({
     >
       {characters.map((character, index) => {
         const isDigit = digitPattern.test(character);
+        const visibleCharacter = character === " " ? "\u00a0" : character;
 
         return (
           <span
             key={`${index}-${character}-${rolling ? displayValue : value}`}
             className={isDigit ? "lab-time-flip-digit" : "lab-time-flip-mark"}
           >
-            {character}
+            {visibleCharacter}
           </span>
         );
       })}

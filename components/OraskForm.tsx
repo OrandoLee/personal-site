@@ -1,7 +1,8 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { uiText } from "@/content/uiText";
+import { cn } from "@/lib/classNames";
 
 type FormState = {
   name: string;
@@ -31,8 +32,39 @@ export function OraskForm() {
     status: "idle",
     message: ""
   });
+  const [visible, setVisible] = useState(false);
+  const [isTearing, setIsTearing] = useState(false);
+  const [paperVersion, setPaperVersion] = useState(0);
 
   const isSubmitting = submitState.status === "loading";
+  const isLocked = isSubmitting || isTearing;
+
+  useEffect(() => {
+    let timeout: number | undefined;
+
+    function showPaper() {
+      timeout = window.setTimeout(() => setVisible(true), 1480);
+    }
+
+    if (!document.querySelector(".splash-screen")) {
+      showPaper();
+      return () => window.clearTimeout(timeout);
+    }
+
+    const observer = new MutationObserver(() => {
+      if (!document.querySelector(".splash-screen")) {
+        observer.disconnect();
+        showPaper();
+      }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      observer.disconnect();
+      window.clearTimeout(timeout);
+    };
+  }, []);
 
   const validationError = useMemo(() => {
     if (!form.name.trim()) return uiText.orask.validationName;
@@ -82,11 +114,16 @@ export function OraskForm() {
         throw new Error(result.message || uiText.orask.failure);
       }
 
-      setForm(initialForm);
+      setIsTearing(true);
       setSubmitState({
         status: "success",
         message: uiText.orask.success
       });
+      window.setTimeout(() => {
+        setForm(initialForm);
+        setPaperVersion((current) => current + 1);
+        setIsTearing(false);
+      }, 920);
     } catch (error) {
       setSubmitState({
         status: "error",
@@ -96,92 +133,119 @@ export function OraskForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-5">
-      <div className="grid gap-5 sm:grid-cols-2">
-        <label className="grid gap-2">
-          <span className="text-sm text-archive-muted">{uiText.orask.nameLabel}</span>
-          <input
-            value={form.name}
-            onChange={(event) =>
-              setForm((current) => ({ ...current, name: event.target.value }))
-            }
-            className="rounded-2xl border border-archive-line bg-archive-paper2 px-4 py-3 text-archive-ink outline-none transition placeholder:text-archive-muted/60 focus:border-archive-ink"
-            placeholder={uiText.orask.namePlaceholder}
-            autoComplete="name"
-            disabled={isSubmitting}
-            required
-          />
-        </label>
+    <div
+      className={cn(
+        "orask-paper-stack",
+        visible && "orask-paper-stack--visible"
+      )}
+    >
+      <form
+        key={paperVersion}
+        onSubmit={handleSubmit}
+        className={cn("orask-paper", isTearing && "orask-paper--tearing")}
+      >
+        <div className="orask-paper__holes" aria-hidden="true">
+          {Array.from({ length: 8 }).map((_, index) => (
+            <span key={index} />
+          ))}
+        </div>
 
-        <label className="grid gap-2">
-          <span className="text-sm text-archive-muted">{uiText.orask.emailLabel}</span>
-          <input
-            type="email"
-            value={form.email}
-            onChange={(event) =>
-              setForm((current) => ({ ...current, email: event.target.value }))
-            }
-            className="rounded-2xl border border-archive-line bg-archive-paper2 px-4 py-3 text-archive-ink outline-none transition placeholder:text-archive-muted/60 focus:border-archive-ink"
-            placeholder="you@example.com"
-            autoComplete="email"
-            disabled={isSubmitting}
-            required
-          />
-        </label>
-      </div>
-
-      <label className="grid gap-2">
-        <span className="text-sm text-archive-muted">{uiText.orask.subjectLabel}</span>
-        <input
-          value={form.subject}
-          onChange={(event) =>
-            setForm((current) => ({ ...current, subject: event.target.value }))
-          }
-          className="rounded-2xl border border-archive-line bg-archive-paper2 px-4 py-3 text-archive-ink outline-none transition placeholder:text-archive-muted/60 focus:border-archive-ink"
-          placeholder={uiText.orask.subjectPlaceholder}
-          disabled={isSubmitting}
-          required
-        />
-      </label>
-
-      <label className="grid gap-2">
-        <span className="text-sm text-archive-muted">{uiText.orask.messageLabel}</span>
-        <textarea
-          value={form.message}
-          onChange={(event) =>
-            setForm((current) => ({ ...current, message: event.target.value }))
-          }
-          className="min-h-44 resize-y rounded-2xl border border-archive-line bg-archive-paper2 px-4 py-3 text-archive-ink outline-none transition placeholder:text-archive-muted/60 focus:border-archive-ink"
-          placeholder={uiText.orask.messagePlaceholder}
-          disabled={isSubmitting}
-          required
-        />
-      </label>
-
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="rounded-full border border-archive-ink bg-archive-ink px-6 py-3 text-sm text-archive-paper2 transition hover:bg-transparent hover:text-archive-ink disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {isSubmitting ? uiText.orask.submitting : uiText.orask.submit}
-        </button>
-
-        {submitState.message ? (
-          <p
-            className={
-              submitState.status === "success"
-                ? "text-sm text-archive-moss"
-                : submitState.status === "error"
-                  ? "text-sm text-archive-clay"
-                  : "text-sm text-archive-muted"
-            }
-            role="status"
-          >
-            {submitState.message}
+        <header className="orask-paper__header">
+          <h2 className="orask-paper__title orask-handwrite">
+            {uiText.orask.formTitle}
+          </h2>
+          <p className="orask-paper__intro orask-handwrite">
+            {uiText.orask.formDescription}
           </p>
-        ) : null}
-      </div>
-    </form>
+        </header>
+
+        <div className="orask-paper__fields">
+          <label className="orask-paper-field orask-handwrite">
+            <span>{uiText.orask.nameLabel}：</span>
+            <input
+              value={form.name}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, name: event.target.value }))
+              }
+              placeholder={uiText.orask.namePlaceholder}
+              autoComplete="name"
+              disabled={isLocked}
+              required
+            />
+          </label>
+
+          <label className="orask-paper-field orask-handwrite">
+            <span>{uiText.orask.emailLabel}：</span>
+            <input
+              type="email"
+              value={form.email}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, email: event.target.value }))
+              }
+              placeholder="you@example.com"
+              autoComplete="email"
+              disabled={isLocked}
+              required
+            />
+          </label>
+
+          <label className="orask-paper-field orask-paper-field--wide orask-handwrite">
+            <span>{uiText.orask.subjectLabel}：</span>
+            <input
+              value={form.subject}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  subject: event.target.value
+                }))
+              }
+              placeholder={uiText.orask.subjectPlaceholder}
+              disabled={isLocked}
+              required
+            />
+          </label>
+
+          <label className="orask-paper-field orask-paper-field--message orask-handwrite">
+            <span>{uiText.orask.messageLabel}：</span>
+            <textarea
+              value={form.message}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  message: event.target.value
+                }))
+              }
+              placeholder={uiText.orask.messagePlaceholder}
+              disabled={isLocked}
+              required
+            />
+          </label>
+        </div>
+
+        <div className="orask-paper__footer">
+          <button
+            type="submit"
+            disabled={isLocked}
+            className="orask-paper__submit"
+          >
+            {isSubmitting ? uiText.orask.submitting : uiText.orask.submit}
+          </button>
+
+          {submitState.message ? (
+            <p
+              className={cn(
+                "orask-paper__status",
+                submitState.status === "success" &&
+                  "orask-paper__status--success",
+                submitState.status === "error" && "orask-paper__status--error"
+              )}
+              role="status"
+            >
+              {submitState.message}
+            </p>
+          ) : null}
+        </div>
+      </form>
+    </div>
   );
 }

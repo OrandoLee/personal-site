@@ -1,4 +1,5 @@
 import { OraskForm } from "@/components/OraskForm";
+import { OraskMemoList } from "@/components/OraskMemoList";
 import { OraskTitleLogo } from "@/components/OraskTitleLogo";
 import { uiText } from "@/content/uiText";
 
@@ -8,30 +9,18 @@ export const metadata = {
 
 export default function OraskPage() {
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
-      <section className="grid gap-10 lg:grid-cols-[minmax(0,var(--orask-copy-width))_minmax(0,1fr)] lg:[--orask-copy-width:560px]">
-        <div className="lg:sticky lg:top-28 lg:self-start">
+    <main className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+      <section className="orask-page-grid grid gap-12 lg:grid-cols-[minmax(0,var(--orask-copy-width))_minmax(0,1fr)] lg:[--orask-copy-width:570px]">
+        <div className="lg:sticky lg:top-24 lg:self-start">
           <OraskTitleLogo className="mb-8" />
-          <h1 className="mt-4 max-w-[468px] font-serif text-[2.35rem] font-semibold leading-[1.14] text-archive-ink sm:text-7xl sm:leading-tight">
-            {uiText.orask.title}
-          </h1>
-          <p className="mt-7 max-w-xl text-base leading-8 text-archive-muted">
+          <h1 className="sr-only">{uiText.orask.title}</h1>
+          <OraskMemoList />
+          <p className="orask-memo-description mt-7 max-w-xl text-base leading-8 text-archive-muted">
             {uiText.orask.description}
           </p>
         </div>
 
-        <section className="rounded-3xl border border-archive-line bg-archive-paper2 p-5 shadow-archive sm:p-8">
-          <div className="mb-8 pb-6">
-            <h2
-              className="text-[38px] font-semibold leading-tight text-archive-ink"
-              style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
-            >
-              {uiText.orask.formTitle}
-            </h2>
-            <p className="mt-3 text-sm leading-7 text-archive-muted">
-              {uiText.orask.formDescription}
-            </p>
-          </div>
+        <section className="orask-form-stage" aria-label={uiText.orask.formTitle}>
           <OraskForm />
         </section>
       </section>

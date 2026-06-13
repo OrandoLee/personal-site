@@ -136,7 +136,7 @@ export function Navbar() {
           <LogoWordmark className="h-7 w-24 object-contain object-left sm:h-8 sm:w-28" />
         </Link>
 
-        <nav className="flex items-center gap-2 overflow-x-auto">
+        <nav className="flex min-w-0 items-center gap-2 overflow-x-auto">
           {navItems.map((item) => {
             const active = isActive(pathname, item.href);
             const labActive = Boolean(item.hasLabMenu && (active || labMenuOpen));

@@ -453,6 +453,602 @@ video {
     520ms both;
 }
 
+.orask-page-grid {
+  align-items: start;
+}
+
+.orask-memo {
+  position: relative;
+  max-width: 35.5rem;
+}
+
+.orask-memo__paper {
+  position: relative;
+  padding: clamp(0.5rem, 1.5vw, 0.8rem) 0;
+}
+
+.orask-memo__paper::before {
+  position: absolute;
+  top: 0.25rem;
+  bottom: 0.2rem;
+  left: clamp(1.9rem, 5.4vw, 3.15rem);
+  width: 1px;
+  background: linear-gradient(
+    rgb(var(--archive-clay) / 0),
+    rgb(var(--archive-clay) / 0.24) 12%,
+    rgb(var(--archive-clay) / 0.2) 88%,
+    rgb(var(--archive-clay) / 0)
+  );
+  content: "";
+  transform: scaleY(0);
+  transform-origin: top center;
+  animation: orask-memo-rule-draw 880ms ease 520ms both;
+}
+
+.orask-memo__lines {
+  display: grid;
+  gap: clamp(0.28rem, 0.95vw, 0.72rem);
+}
+
+.orask-memo-item {
+  --orask-row-delay: 0ms;
+  display: grid;
+  grid-template-columns: clamp(2.65rem, 6.2vw, 4.2rem) minmax(0, 1fr);
+  align-items: start;
+  color: rgb(var(--archive-ink));
+}
+
+.orask-memo-item__circle {
+  position: relative;
+  width: clamp(2.55rem, 5.6vw, 3.95rem);
+  aspect-ratio: 1;
+  margin-top: clamp(0.28rem, 0.95vw, 0.7rem);
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: rgb(var(--archive-ink));
+  cursor: pointer;
+  transform: rotate(-2deg);
+}
+
+.orask-memo-item__circle:focus-visible {
+  outline: 2px solid rgb(var(--archive-clay));
+  outline-offset: 4px;
+}
+
+.orask-memo-item__circle-svg,
+.orask-memo-item__check-svg {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.orask-memo-item__circle-svg path,
+.orask-memo-item__check-svg path {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.orask-memo-item__circle-svg path {
+  stroke: currentColor;
+}
+
+.orask-memo-item__circle-svg path:first-child {
+  stroke-width: 3.2;
+  animation: orask-circle-draw 1120ms cubic-bezier(0.48, 0.02, 0.16, 1)
+    calc(260ms + var(--orask-row-delay)) both;
+}
+
+.orask-memo-item__circle-svg path:last-child {
+  stroke-width: 1.8;
+  opacity: 0.46;
+  animation: orask-circle-draw 980ms cubic-bezier(0.48, 0.02, 0.16, 1)
+    calc(360ms + var(--orask-row-delay)) both;
+}
+
+.orask-memo-item__check-svg path {
+  stroke: #b83f34;
+  opacity: 0;
+}
+
+.orask-memo-item__check-svg path:first-child {
+  stroke-width: 5.4;
+}
+
+.orask-memo-item__check-svg path:last-child {
+  stroke-width: 2.2;
+  stroke-opacity: 0.44;
+}
+
+.orask-memo-item--checked .orask-memo-item__check-svg path {
+  animation: orask-check-draw 520ms cubic-bezier(0.42, 0, 0.2, 1) both;
+}
+
+.orask-memo-item--checked .orask-memo-item__check-svg path:last-child {
+  animation-delay: 70ms;
+}
+
+.orask-memo-item:not(.orask-memo-item--checked)
+  .orask-memo-item__check-svg
+  path {
+  animation: orask-check-erase 360ms cubic-bezier(0.36, 0, 0.66, 1) both;
+}
+
+.orask-memo-item__body {
+  position: relative;
+  min-width: 0;
+  padding-bottom: 0.04em;
+}
+
+.orask-memo-item__text {
+  display: inline;
+  min-width: 1.5ch;
+  max-width: 100%;
+  color: inherit;
+  font-family:
+    "Noto Serif SC",
+    "Songti SC",
+    SimSun,
+    Georgia,
+    serif;
+  font-size: clamp(2.72rem, 6.4vw, 5.05rem);
+  font-weight: 700;
+  line-height: 1.13;
+  overflow-wrap: anywhere;
+  caret-color: rgb(var(--archive-clay));
+  outline: none;
+  text-shadow: 0 0 0 rgb(var(--archive-ink) / 0.9);
+  animation:
+    articles-title-write 1280ms steps(18, end)
+      calc(620ms + var(--orask-row-delay)) both,
+    articles-title-restless 1780ms steps(2, end)
+      calc(1980ms + var(--orask-row-delay)) infinite;
+  clip-path: inset(0 100% 0 0);
+  filter: blur(0.7px);
+  transition:
+    color 280ms ease,
+    font-size 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 280ms ease;
+}
+
+.orask-memo-item__text:empty::before {
+  color: rgb(var(--archive-muted) / 0.45);
+  content: attr(data-placeholder);
+}
+
+.orask-memo-item--checked .orask-memo-item__text {
+  color: rgb(var(--archive-muted) / 0.72);
+  font-size: clamp(2.38rem, 5.75vw, 4.45rem);
+  animation: none;
+  clip-path: none;
+  filter: none;
+}
+
+.orask-memo-item__strike {
+  position: absolute;
+  top: 54%;
+  right: 0;
+  left: 0;
+  height: clamp(0.18rem, 0.42vw, 0.32rem);
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      90deg,
+      rgb(var(--archive-ink) / 0),
+      rgb(var(--archive-ink) / 0.95) 6%,
+      rgb(var(--archive-ink) / 0.88) 92%,
+      rgb(var(--archive-ink) / 0)
+    ),
+    repeating-linear-gradient(
+      -6deg,
+      transparent 0 8px,
+      rgb(var(--archive-paper2) / 0.2) 8px 11px
+    );
+  opacity: 0;
+  pointer-events: none;
+  transform: scaleX(0) rotate(-0.6deg);
+  transform-origin: left center;
+}
+
+.orask-memo-item--checked .orask-memo-item__strike {
+  animation: orask-strike-draw 520ms cubic-bezier(0.34, 0, 0.2, 1) 240ms both;
+}
+
+.orask-memo-item:not(.orask-memo-item--checked) .orask-memo-item__strike {
+  animation: orask-strike-retract 420ms cubic-bezier(0.36, 0, 0.66, 1) both;
+}
+
+.orask-memo__add {
+  display: grid;
+  width: clamp(2.65rem, 5vw, 3.25rem);
+  aspect-ratio: 1;
+  margin-top: 1.1rem;
+  margin-left: clamp(2.7rem, 6.2vw, 4.55rem);
+  place-items: center;
+  border: 1px solid rgb(var(--archive-ink) / 0.74);
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle at 38% 32%,
+      rgb(var(--archive-paper2) / 0.98),
+      rgb(var(--archive-paper) / 0.92) 72%
+    );
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.44),
+    0 10px 22px rgb(var(--archive-shadow) / 0.12);
+  color: rgb(var(--archive-ink));
+  cursor: pointer;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.75rem, 3vw, 2.2rem);
+  line-height: 1;
+  opacity: 0;
+  transform: translateY(8px) rotate(-3deg);
+  transition:
+    border-color 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+  animation: orask-small-enter 520ms cubic-bezier(0.22, 1, 0.36, 1) 1780ms both;
+}
+
+.orask-memo__add:hover,
+.orask-memo__add:focus-visible {
+  border-color: rgb(var(--archive-clay));
+  color: rgb(var(--archive-clay));
+  transform: translateY(-1px) rotate(2deg);
+}
+
+.orask-memo-description {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: orask-small-enter 620ms cubic-bezier(0.22, 1, 0.36, 1) 2180ms both;
+}
+
+.orask-form-stage {
+  min-width: 0;
+  perspective: 1200px;
+}
+
+.orask-paper-stack {
+  position: relative;
+  opacity: 0;
+  transform: translateY(-24px) rotateX(8deg) scale(0.985);
+  transform-origin: 50% 0;
+}
+
+.orask-paper-stack--visible {
+  animation: orask-paper-stack-drop 780ms cubic-bezier(0.18, 0.84, 0.22, 1)
+    both;
+}
+
+.orask-paper-stack::before,
+.orask-paper-stack::after {
+  position: absolute;
+  inset: 1.05rem 0 -0.7rem;
+  z-index: 0;
+  border: 1px solid rgb(var(--archive-line) / 0.72);
+  border-radius: 10px;
+  background: rgb(var(--archive-paper2));
+  box-shadow: 0 22px 34px rgb(var(--archive-shadow) / 0.08);
+  content: "";
+  pointer-events: none;
+}
+
+.orask-paper-stack::before {
+  transform: translate(9px, 9px) rotate(1deg);
+}
+
+.orask-paper-stack::after {
+  transform: translate(17px, 18px) rotate(1.8deg);
+  opacity: 0.8;
+}
+
+.orask-paper {
+  position: relative;
+  z-index: 2;
+  min-height: clamp(35rem, 68vh, 48rem);
+  overflow: hidden;
+  border: 1px solid rgb(var(--archive-line) / 0.78);
+  border-radius: 10px;
+  background:
+    radial-gradient(
+      circle at 18% 16%,
+      rgb(255 255 255 / 0.5),
+      transparent 22%
+    ),
+    linear-gradient(
+      90deg,
+      rgb(var(--archive-clay) / 0.08) 0 1px,
+      transparent 1px
+    )
+      5rem 0 / 1px 100% no-repeat,
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 2.12rem,
+      rgb(var(--archive-blue) / 0.1) 2.12rem calc(2.12rem + 1px)
+    ),
+    repeating-linear-gradient(
+      105deg,
+      rgb(var(--archive-ink) / 0.018) 0 1px,
+      transparent 1px 7px
+    ),
+    rgb(var(--archive-paper2));
+  box-shadow:
+    0 36px 58px rgb(var(--archive-shadow) / 0.18),
+    inset 0 1px 0 rgb(255 255 255 / 0.52);
+  padding: clamp(4.4rem, 6vw, 5.6rem) clamp(1.25rem, 4vw, 2.6rem)
+    clamp(1.45rem, 3vw, 2.2rem);
+}
+
+.orask-paper--tearing {
+  animation: orask-paper-tear-away 920ms cubic-bezier(0.58, 0, 0.2, 1) both;
+}
+
+.orask-paper::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(
+      circle at 22% 38%,
+      rgb(var(--archive-ink) / 0.035),
+      transparent 0.08rem
+    ),
+    radial-gradient(
+      circle at 72% 76%,
+      rgb(var(--archive-ink) / 0.026),
+      transparent 0.07rem
+    ),
+    radial-gradient(
+      circle at 43% 62%,
+      rgb(var(--archive-gold) / 0.035),
+      transparent 0.06rem
+    );
+  background-size: 5.2rem 5.2rem, 4.4rem 4.4rem, 3.6rem 3.6rem;
+  content: "";
+  mix-blend-mode: multiply;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.orask-paper::after {
+  position: absolute;
+  top: 2.2rem;
+  right: 0;
+  left: 0;
+  height: 1px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgb(var(--archive-line) / 0.78) 8%,
+      rgb(var(--archive-line) / 0.78) 92%,
+      transparent
+    );
+  content: "";
+  pointer-events: none;
+}
+
+.orask-paper__holes {
+  position: absolute;
+  top: 0.68rem;
+  right: clamp(1.15rem, 4vw, 2.3rem);
+  left: clamp(1.15rem, 4vw, 2.3rem);
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: clamp(0.38rem, 1.2vw, 0.85rem);
+}
+
+.orask-paper__holes span {
+  width: clamp(0.6rem, 1.6vw, 0.92rem);
+  aspect-ratio: 1;
+  justify-self: center;
+  border: 1px solid rgb(var(--archive-line) / 0.78);
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle at 48% 54%,
+      rgb(var(--archive-paper) / 0.98),
+      rgb(var(--archive-line) / 0.48)
+    );
+  box-shadow:
+    inset 0 1px 2px rgb(var(--archive-shadow) / 0.12),
+    0 1px 0 rgb(255 255 255 / 0.45);
+}
+
+.orask-paper__header,
+.orask-paper__fields,
+.orask-paper__footer {
+  position: relative;
+  z-index: 1;
+}
+
+.orask-paper__title {
+  margin: 0;
+  color: rgb(var(--archive-ink));
+  font-family:
+    "Noto Serif SC",
+    "Songti SC",
+    SimSun,
+    Georgia,
+    serif;
+  font-size: clamp(2.1rem, 4.3vw, 3rem);
+  font-weight: 800;
+  line-height: 1.12;
+}
+
+.orask-paper__intro {
+  margin: 0.9rem 0 0;
+  color: rgb(var(--archive-muted));
+  font-size: 0.92rem;
+  line-height: 1.8;
+}
+
+.orask-handwrite {
+  opacity: 0;
+  clip-path: inset(0 100% 0 0);
+  filter: blur(0.6px);
+}
+
+.orask-paper-stack--visible .orask-handwrite {
+  opacity: 1;
+  clip-path: none;
+  filter: none;
+  animation:
+    articles-title-write 780ms steps(18, end) calc(260ms + var(--field-delay, 0ms))
+      both,
+    articles-title-restless 1900ms steps(2, end)
+      calc(1080ms + var(--field-delay, 0ms)) 2;
+}
+
+.orask-paper-field:nth-child(1) {
+  --field-delay: 360ms;
+}
+
+.orask-paper-field:nth-child(2) {
+  --field-delay: 460ms;
+}
+
+.orask-paper-field:nth-child(3) {
+  --field-delay: 560ms;
+}
+
+.orask-paper-field:nth-child(4) {
+  --field-delay: 660ms;
+}
+
+.orask-paper__fields {
+  display: grid;
+  gap: 1.25rem 1.45rem;
+  margin-top: clamp(2.6rem, 5vw, 4.2rem);
+}
+
+.orask-paper-field {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 0.45rem;
+  color: rgb(var(--archive-ink));
+  font-family:
+    "Noto Serif SC",
+    "Songti SC",
+    SimSun,
+    Georgia,
+    serif;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.8;
+}
+
+.orask-paper-field--wide,
+.orask-paper-field--message {
+  grid-column: 1 / -1;
+}
+
+.orask-paper-field--message {
+  display: grid;
+  align-items: start;
+}
+
+.orask-paper-field span {
+  flex: none;
+  white-space: nowrap;
+}
+
+.orask-paper-field input,
+.orask-paper-field textarea {
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid rgb(var(--archive-ink) / 0.32);
+  border-radius: 0;
+  background: transparent;
+  color: rgb(var(--archive-ink));
+  caret-color: #b83f34;
+  font: inherit;
+  font-weight: 500;
+  line-height: inherit;
+  outline: none;
+  transition: border-color 180ms ease;
+}
+
+.orask-paper-field input::placeholder,
+.orask-paper-field textarea::placeholder {
+  color: rgb(var(--archive-muted) / 0.5);
+}
+
+.orask-paper-field input:focus,
+.orask-paper-field textarea:focus {
+  border-color: rgb(var(--archive-clay) / 0.82);
+}
+
+.orask-paper-field textarea {
+  min-height: 11.5rem;
+  resize: vertical;
+  border: 1px solid rgb(var(--archive-ink) / 0.24);
+  border-radius: 4px;
+  padding: 0.7rem 0.8rem;
+  line-height: 1.9;
+}
+
+.orask-paper__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.6rem;
+}
+
+.orask-paper__submit {
+  border: 1px solid rgb(var(--archive-ink));
+  border-radius: 999px;
+  background: rgb(var(--archive-ink));
+  color: rgb(var(--archive-paper2));
+  cursor: pointer;
+  font-weight: 700;
+  padding: 0.78rem 1.45rem;
+  transition:
+    background 180ms ease,
+    color 180ms ease,
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.orask-paper__submit:hover,
+.orask-paper__submit:focus-visible {
+  background: transparent;
+  color: rgb(var(--archive-ink));
+  transform: translateY(-1px);
+}
+
+.orask-paper__submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+  transform: none;
+}
+
+.orask-paper__status {
+  max-width: 22rem;
+  color: rgb(var(--archive-muted));
+  font-size: 0.88rem;
+  line-height: 1.7;
+}
+
+.orask-paper__status--success {
+  color: rgb(var(--archive-moss));
+}
+
+.orask-paper__status--error {
+  color: rgb(var(--archive-clay));
+}
+
 .gallery-hero-panel {
   position: relative;
 }
@@ -816,6 +1412,179 @@ video {
     clip-path: inset(0 0 0 0);
     filter: blur(0);
     transform: translateY(0);
+  }
+}
+
+@keyframes orask-memo-rule-draw {
+  from {
+    transform: scaleY(0);
+  }
+
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes orask-circle-draw {
+  0% {
+    opacity: 0;
+    stroke-dashoffset: 1;
+    transform: rotate(-12deg);
+    transform-origin: 50% 50%;
+  }
+
+  18% {
+    opacity: 1;
+  }
+
+  72% {
+    stroke-dashoffset: 0.08;
+  }
+
+  100% {
+    opacity: 1;
+    stroke-dashoffset: 0;
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes orask-check-draw {
+  0% {
+    opacity: 0;
+    stroke-dashoffset: 1;
+  }
+
+  16% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 1;
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes orask-check-erase {
+  0% {
+    opacity: 1;
+    stroke-dashoffset: 0;
+  }
+
+  82% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    stroke-dashoffset: 1;
+  }
+}
+
+@keyframes orask-strike-draw {
+  0% {
+    opacity: 0;
+    transform: scaleX(0) rotate(-0.6deg);
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 1;
+    transform: scaleX(1) rotate(-0.6deg);
+  }
+}
+
+@keyframes orask-strike-retract {
+  0% {
+    opacity: 1;
+    transform: scaleX(1) rotate(-0.6deg);
+    transform-origin: right center;
+  }
+
+  82% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scaleX(0) rotate(-0.6deg);
+    transform-origin: right center;
+  }
+}
+
+@keyframes orask-small-enter {
+  from {
+    opacity: 0;
+    filter: blur(5px);
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+@keyframes orask-paper-stack-drop {
+  0% {
+    opacity: 0;
+    transform: translateY(-42px) rotateX(12deg) rotate(-1.5deg) scale(0.97);
+  }
+
+  58% {
+    opacity: 1;
+    transform: translateY(5px) rotateX(-2deg) rotate(0.45deg) scale(1.006);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotateX(0deg) rotate(0deg) scale(1);
+  }
+}
+
+@keyframes orask-paper-tear-away {
+  0% {
+    opacity: 1;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    filter: blur(0);
+    transform: translateY(0) rotate(0deg);
+  }
+
+  24% {
+    clip-path: polygon(
+      0 0,
+      100% 0,
+      100% 88%,
+      88% 91%,
+      77% 86%,
+      63% 92%,
+      48% 87%,
+      35% 93%,
+      19% 88%,
+      0 92%
+    );
+    transform: translateY(-10px) rotate(-0.6deg);
+  }
+
+  100% {
+    opacity: 0;
+    clip-path: polygon(
+      0 0,
+      100% 0,
+      100% 72%,
+      86% 78%,
+      73% 70%,
+      58% 77%,
+      43% 70%,
+      28% 78%,
+      14% 72%,
+      0 79%
+    );
+    filter: blur(4px);
+    transform: translateY(-150%) rotate(-3deg);
   }
 }
 
@@ -1391,12 +2160,34 @@ video {
   .articles-hero-title__text,
   .articles-hero-title__line::before,
   .articles-hero-title__line::after,
-  .group:hover .article-card-title {
+  .group:hover .article-card-title,
+  .orask-memo__paper::before,
+  .orask-memo-item__circle-svg path,
+  .orask-memo-item__check-svg path,
+  .orask-memo-item__text,
+  .orask-memo-item__strike,
+  .orask-memo__add,
+  .orask-memo-description,
+  .orask-paper-stack,
+  .orask-paper,
+  .orask-handwrite {
     animation: none;
     clip-path: none;
     filter: none;
     opacity: 1;
     transform: none;
+  }
+
+  .orask-memo-item__circle-svg path,
+  .orask-memo-item--checked .orask-memo-item__check-svg path {
+    stroke-dashoffset: 0;
+  }
+
+  .orask-memo-item:not(.orask-memo-item--checked)
+    .orask-memo-item__check-svg
+    path,
+  .orask-memo-item:not(.orask-memo-item--checked) .orask-memo-item__strike {
+    opacity: 0;
   }
 
   .gallery-exposure,

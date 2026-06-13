@@ -41,7 +41,7 @@ export function ArticleCard({ article }: ArticleCardProps) {
               <span>/</span>
               <span>{formatArticleCategory(article.category)}</span>
             </div>
-            <h2 className="font-serif text-3xl font-semibold leading-tight text-archive-ink transition group-hover:text-archive-clay">
+            <h2 className="article-card-title font-serif text-3xl font-semibold leading-tight text-archive-ink transition group-hover:text-archive-clay">
               {article.title}
             </h2>
             {shouldShowSummary ? (

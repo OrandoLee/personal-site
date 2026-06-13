@@ -289,6 +289,12 @@ video {
       calc(var(--articles-line-delay) + 1260ms) infinite;
 }
 
+.group:hover .article-card-title {
+  animation: articles-title-restless 1780ms steps(2, end) infinite;
+  transform-origin: 18% 72%;
+  will-change: transform;
+}
+
 @media (min-width: 1024px) {
   .lab-title-line {
     display: block;
@@ -825,7 +831,8 @@ video {
   .section-title-logo__tagline,
   .articles-hero-title__text,
   .articles-hero-title__line::before,
-  .articles-hero-title__line::after {
+  .articles-hero-title__line::after,
+  .group:hover .article-card-title {
     animation: none;
     clip-path: none;
     filter: none;

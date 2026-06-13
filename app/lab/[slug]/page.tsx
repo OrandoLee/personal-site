@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AnimatedLabTime } from "@/components/AnimatedLabTime";
 import { formatShanghaiDateTime } from "@/lib/date-format";
 import { getPublicLabProjectBySlug } from "@/lib/public-content";
 
@@ -84,9 +85,10 @@ export default async function LabDetailPage({ params }: LabDetailPageProps) {
               </p>
               <p className="mt-2 lab-time-font text-lg text-archive-ink">
                 {project.githubCreatedAt ? (
-                  <time dateTime={project.githubCreatedAt}>
-                    {formatShanghaiDateTime(project.githubCreatedAt)}
-                  </time>
+                  <AnimatedLabTime
+                    dateTime={project.githubCreatedAt}
+                    value={formatShanghaiDateTime(project.githubCreatedAt)}
+                  />
                 ) : (
                   "未同步"
                 )}
@@ -98,9 +100,10 @@ export default async function LabDetailPage({ params }: LabDetailPageProps) {
               </p>
               <p className="mt-2 lab-time-font text-lg text-archive-ink">
                 {project.githubUpdatedAt ? (
-                  <time dateTime={project.githubUpdatedAt}>
-                    {formatShanghaiDateTime(project.githubUpdatedAt)}
-                  </time>
+                  <AnimatedLabTime
+                    dateTime={project.githubUpdatedAt}
+                    value={formatShanghaiDateTime(project.githubUpdatedAt)}
+                  />
                 ) : (
                   "未同步"
                 )}

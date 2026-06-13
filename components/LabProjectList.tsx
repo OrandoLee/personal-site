@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AnimatedLabTime } from "@/components/AnimatedLabTime";
 import type { LabProject } from "@/data/lab";
 import { formatShanghaiDateTime } from "@/lib/date-format";
 
@@ -60,9 +61,10 @@ export function LabProjectList({ projects, emptyText }: LabProjectListProps) {
                     <dt className="uppercase tracking-[0.2em]">初次上传</dt>
                     <dd className="mt-2 lab-time-font text-sm text-archive-ink">
                       {project.githubCreatedAt ? (
-                        <time dateTime={project.githubCreatedAt}>
-                          {formatShanghaiDateTime(project.githubCreatedAt)}
-                        </time>
+                        <AnimatedLabTime
+                          dateTime={project.githubCreatedAt}
+                          value={formatShanghaiDateTime(project.githubCreatedAt)}
+                        />
                       ) : (
                         "未同步"
                       )}
@@ -72,9 +74,10 @@ export function LabProjectList({ projects, emptyText }: LabProjectListProps) {
                     <dt className="uppercase tracking-[0.2em]">最近更新</dt>
                     <dd className="mt-2 lab-time-font text-sm text-archive-ink">
                       {project.githubUpdatedAt ? (
-                        <time dateTime={project.githubUpdatedAt}>
-                          {formatShanghaiDateTime(project.githubUpdatedAt)}
-                        </time>
+                        <AnimatedLabTime
+                          dateTime={project.githubUpdatedAt}
+                          value={formatShanghaiDateTime(project.githubUpdatedAt)}
+                        />
                       ) : (
                         "未同步"
                       )}

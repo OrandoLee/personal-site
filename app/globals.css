@@ -523,6 +523,26 @@ video {
   letter-spacing: 0.02em;
 }
 
+.lab-time-flip-digit,
+.lab-time-flip-mark {
+  display: inline-block;
+}
+
+.lab-time-flip-digit {
+  min-width: 0.62em;
+  text-align: center;
+  transform-origin: 50% 50%;
+}
+
+[data-lab-time-state="rolling"] .lab-time-flip-digit {
+  animation: lab-time-flip 68ms steps(2, end) both;
+  border-radius: 2px;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, currentColor 18%, transparent),
+    inset 0 -1px 0 color-mix(in srgb, currentColor 18%, transparent);
+}
+
 .date-counter {
   display: inline-block;
   font-variant-numeric: lining-nums tabular-nums;
@@ -557,6 +577,32 @@ video {
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes lab-time-flip {
+  0% {
+    opacity: 0.35;
+    filter: blur(1px);
+    transform: translateY(-0.18em) rotateX(78deg);
+  }
+
+  58% {
+    opacity: 0.75;
+    filter: blur(0.35px);
+    transform: translateY(0.08em) rotateX(-24deg);
+  }
+
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0) rotateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-lab-time-state="rolling"] .lab-time-flip-digit {
+    animation: none;
   }
 }
 

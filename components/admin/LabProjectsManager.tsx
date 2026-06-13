@@ -85,6 +85,8 @@ export function LabProjectsManager() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [message, setMessage] = useState("");
+  const [releaseMessage, setReleaseMessage] = useState("");
+  const [selectedPrivateIds, setSelectedPrivateIds] = useState<string[]>([]);
   const [slugTouched, setSlugTouched] = useState(false);
   const {
     register,
@@ -99,6 +101,13 @@ export function LabProjectsManager() {
   const slug = watch("slug");
   const coverImage = watch("coverImage");
   const openMode = watch("openMode");
+  const isPublished = watch("isPublished");
+  const privateItems = useMemo(
+    () => items.filter((item) => !item.isPublished),
+    [items]
+  );
+  const allPrivateSelected =
+    privateItems.length > 0 && selectedPrivateIds.length === privateItems.length;
 
   const loadItems = useCallback(async (query = "", category = "all") => {
     const params = new URLSearchParams();
@@ -109,6 +118,7 @@ export function LabProjectsManager() {
     });
     const result = (await response.json()) as ApiResult<AdminLabProject[]>;
     setItems(result.data ?? []);
+    setSelectedPrivateIds([]);
   }, []);
 
   useEffect(() => {
@@ -194,6 +204,52 @@ export function LabProjectsManager() {
     await loadItems(search, categoryFilter);
   }
 
+  function togglePrivateSelection(id: string, checked: boolean) {
+    setSelectedPrivateIds((current) =>
+      checked
+        ? Array.from(new Set([...current, id]))
+        : current.filter((selectedId) => selectedId !== id)
+    );
+  }
+
+  function toggleAllPrivateSelection(checked: boolean) {
+    setSelectedPrivateIds(checked ? privateItems.map((item) => item.id) : []);
+  }
+
+  async function releasePrivateLabProjects(options: {
+    ids?: string[];
+    releaseAll?: boolean;
+  }) {
+    const ids = options.ids ?? [];
+
+    if (!options.releaseAll && ids.length === 0) {
+      setReleaseMessage("请先选择未公开 LAB。");
+      return;
+    }
+
+    const response = await fetch("/api/admin/lab/bulk", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "publish",
+        scope: options.releaseAll ? "unpublished" : "selected",
+        ids
+      })
+    });
+    const result = (await response.json()) as ApiResult<{ count: number }>;
+
+    if (!response.ok || !result.ok) {
+      setReleaseMessage(result.message ?? "放出未公开 LAB 失败。");
+      return;
+    }
+
+    setReleaseMessage(`已放出 ${result.data?.count ?? 0} 个未公开 LAB。`);
+    if (activeItem && (options.releaseAll || ids.includes(activeItem.id))) {
+      setValue("isPublished", true);
+    }
+    await loadItems(search, categoryFilter);
+  }
+
   return (
     <div className="grid gap-6 2xl:grid-cols-2">
       <section className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
@@ -249,6 +305,89 @@ export function LabProjectsManager() {
         <p className="mb-4 text-xs text-zinc-500">
           当前分类：{activeCategoryLabel}
         </p>
+
+        <section className="mb-5 rounded-3xl border border-dashed border-white/15 bg-black/20 p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h3 className="text-sm font-medium text-white">未公开 LAB</h3>
+              <p className="mt-1 text-xs leading-5 text-zinc-500">
+                保存后未勾选公开的 LAB 项目会留在这里，可选择一批放出，也可一次放出全部未公开项目。
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() =>
+                  void releasePrivateLabProjects({ ids: selectedPrivateIds })
+                }
+                className="rounded-full border border-emerald-400/30 px-3 py-1.5 text-xs text-emerald-200"
+              >
+                放出已选
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  void releasePrivateLabProjects({ releaseAll: true })
+                }
+                className="rounded-full bg-white px-3 py-1.5 text-xs text-zinc-950"
+              >
+                放出全部
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-zinc-500">
+            <label className="flex items-center gap-2 text-zinc-300">
+              <input
+                type="checkbox"
+                checked={allPrivateSelected}
+                onChange={(event) =>
+                  toggleAllPrivateSelection(event.target.checked)
+                }
+              />
+              全选未公开
+            </label>
+            <span>
+              已选 {selectedPrivateIds.length} / {privateItems.length}
+            </span>
+            {releaseMessage ? <span>{releaseMessage}</span> : null}
+          </div>
+
+          <div className="mt-3 grid gap-2">
+            {privateItems.slice(0, 6).map((item) => (
+              <label
+                key={item.id}
+                className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3"
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedPrivateIds.includes(item.id)}
+                  onChange={(event) =>
+                    togglePrivateSelection(item.id, event.target.checked)
+                  }
+                />
+                <span className="min-w-0">
+                  <span className="block truncate text-sm text-zinc-200">
+                    {item.title}
+                  </span>
+                  <span className="mt-1 block truncate text-xs text-zinc-500">
+                    /lab/{item.slug}
+                  </span>
+                </span>
+              </label>
+            ))}
+            {privateItems.length > 6 ? (
+              <p className="px-4 text-xs text-zinc-500">
+                还有 {privateItems.length - 6} 个未公开 LAB，可用“放出全部”一次公开。
+              </p>
+            ) : null}
+            {privateItems.length === 0 ? (
+              <p className="rounded-2xl border border-white/10 px-4 py-4 text-sm text-zinc-500">
+                当前没有未公开 LAB。
+              </p>
+            ) : null}
+          </div>
+        </section>
 
         <div className="grid gap-3">
           {items.map((item) => (
@@ -448,6 +587,12 @@ export function LabProjectsManager() {
             <input type="checkbox" {...register("isPublished")} />
             公开显示
           </label>
+
+          <p className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-xs text-zinc-500">
+            {isPublished
+              ? "保存后会在前台 LAB 展示。"
+              : "保存到网站后台，但暂不在前台 LAB 展示。"}
+          </p>
 
           <button
             disabled={isSubmitting}

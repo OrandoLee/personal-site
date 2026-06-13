@@ -100,6 +100,7 @@ export function ArticleCollectionsManager() {
   const [articleSearch, setArticleSearch] = useState("");
   const [batchItems, setBatchItems] = useState<BatchUploadItem[]>([]);
   const [batchUploading, setBatchUploading] = useState(false);
+  const [publishBatchOnImport, setPublishBatchOnImport] = useState(false);
 
   const loadData = useCallback(async () => {
     const [articleResponse, collectionResponse] = await Promise.all([
@@ -230,7 +231,7 @@ export function ArticleCollectionsManager() {
   async function ensureCollectionForUpload() {
     const saved = await persistCollection({
       resetAfterSave: false,
-      forcePublished: true
+      forcePublished: publishBatchOnImport
     });
     setMessage("合集已准备好，开始上传文件。");
     return saved.id;
@@ -277,7 +278,7 @@ export function ArticleCollectionsManager() {
         formData.append("file", file);
         formData.append("collectionId", collectionId);
         formData.append("useFileNameAsTitle", "true");
-        formData.append("publishOnImport", "true");
+        formData.append("publishOnImport", publishBatchOnImport ? "true" : "false");
 
         try {
           const response = await fetch(endpoint, {
@@ -518,6 +519,19 @@ export function ArticleCollectionsManager() {
                 }}
               />
             </div>
+            <label className="flex items-start gap-3 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-zinc-300">
+              <input
+                type="checkbox"
+                checked={publishBatchOnImport}
+                onChange={(event) => setPublishBatchOnImport(event.target.checked)}
+              />
+              <span>
+                <span className="block">导入后立即公开 DOCUMENT</span>
+                <span className="mt-1 block text-xs text-zinc-500">
+                  不勾选时，文档和当前合集会先保存到后台，不在前台展示。
+                </span>
+              </span>
+            </label>
             {batchItems.length > 0 ? (
               <div className="grid gap-2">
                 {batchItems.map((item) => (
@@ -654,9 +668,14 @@ export function ArticlesManager() {
   const [items, setItems] = useState<AdminArticle[]>([]);
   const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [selectedDraftIds, setSelectedDraftIds] = useState<string[]>([]);
   const [bulkMessage, setBulkMessage] = useState("");
+  const [draftReleaseMessage, setDraftReleaseMessage] = useState("");
 
   const allSelected = items.length > 0 && selectedIds.length === items.length;
+  const draftItems = useMemo(() => items.filter((item) => !item.published), [items]);
+  const allDraftSelected =
+    draftItems.length > 0 && selectedDraftIds.length === draftItems.length;
 
   const loadItems = useCallback(async (query = "") => {
     const response = await fetch(
@@ -666,6 +685,7 @@ export function ArticlesManager() {
     const result = (await response.json()) as ApiResult<AdminArticle[]>;
     setItems(result.data ?? []);
     setSelectedIds([]);
+    setSelectedDraftIds([]);
   }, []);
 
   useEffect(() => {
@@ -711,6 +731,18 @@ export function ArticlesManager() {
     setSelectedIds(checked ? items.map((item) => item.id) : []);
   }
 
+  function toggleDraftSelected(id: string, checked: boolean) {
+    setSelectedDraftIds((current) =>
+      checked
+        ? Array.from(new Set([...current, id]))
+        : current.filter((selectedId) => selectedId !== id)
+    );
+  }
+
+  function toggleAllDraftSelected(checked: boolean) {
+    setSelectedDraftIds(checked ? draftItems.map((item) => item.id) : []);
+  }
+
   async function runBulkAction(
     action: "delete" | "feature" | "unfeature" | "publish" | "unpublish"
   ) {
@@ -742,8 +774,39 @@ export function ArticlesManager() {
     await loadItems(search);
   }
 
+  async function releaseDraftDocuments(options: {
+    ids?: string[];
+    releaseAll?: boolean;
+  }) {
+    const ids = options.ids ?? [];
+
+    if (!options.releaseAll && ids.length === 0) {
+      setDraftReleaseMessage("请先选择未公开 DOCUMENT。");
+      return;
+    }
+
+    const response = await fetch("/api/admin/articles/bulk", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "publish",
+        scope: options.releaseAll ? "unpublished" : "selected",
+        ids
+      })
+    });
+    const result = (await response.json()) as ApiResult<{ count: number }>;
+
+    if (!response.ok || !result.ok) {
+      setDraftReleaseMessage(result.message ?? "放出未公开 DOCUMENT 失败。");
+      return;
+    }
+
+    setDraftReleaseMessage(`已放出 ${result.data?.count ?? 0} 篇未公开文档。`);
+    await loadItems(search);
+  }
+
   return (
-    <section className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
+    <section className="min-w-0 overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-5">
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="font-serif text-2xl font-semibold">
@@ -786,6 +849,85 @@ export function ArticlesManager() {
           {uiText.admin.search}
         </button>
       </form>
+
+      <section className="mb-5 rounded-3xl border border-dashed border-white/15 bg-black/20 p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h3 className="text-sm font-medium text-white">未公开 DOCUMENT</h3>
+            <p className="mt-1 text-xs leading-5 text-zinc-500">
+              新建、导入或批量上传后未公开的文档会留在这里，可选择部分放出，也可一次放出全部未公开文档。
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() =>
+                void releaseDraftDocuments({ ids: selectedDraftIds })
+              }
+              className="rounded-full border border-emerald-400/30 px-3 py-1.5 text-xs text-emerald-200"
+            >
+              放出已选
+            </button>
+            <button
+              type="button"
+              onClick={() => void releaseDraftDocuments({ releaseAll: true })}
+              className="rounded-full bg-white px-3 py-1.5 text-xs text-zinc-950"
+            >
+              放出全部
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-zinc-500">
+          <label className="flex items-center gap-2 text-zinc-300">
+            <input
+              type="checkbox"
+              checked={allDraftSelected}
+              onChange={(event) => toggleAllDraftSelected(event.target.checked)}
+            />
+            全选未公开
+          </label>
+          <span>
+            已选 {selectedDraftIds.length} / {draftItems.length}
+          </span>
+          {draftReleaseMessage ? <span>{draftReleaseMessage}</span> : null}
+        </div>
+
+        <div className="mt-3 grid gap-2">
+          {draftItems.slice(0, 6).map((item) => (
+            <label
+              key={item.id}
+              className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3"
+            >
+              <input
+                type="checkbox"
+                checked={selectedDraftIds.includes(item.id)}
+                onChange={(event) =>
+                  toggleDraftSelected(item.id, event.target.checked)
+                }
+              />
+              <span className="min-w-0">
+                <span className="block truncate text-sm text-zinc-200">
+                  {item.title}
+                </span>
+                <span className="mt-1 block truncate text-xs text-zinc-500">
+                  /articles/{item.slug}
+                </span>
+              </span>
+            </label>
+          ))}
+          {draftItems.length > 6 ? (
+            <p className="px-4 text-xs text-zinc-500">
+              还有 {draftItems.length - 6} 篇未公开文档，可用“放出全部”一次公开。
+            </p>
+          ) : null}
+          {draftItems.length === 0 ? (
+            <p className="rounded-2xl border border-white/10 px-4 py-4 text-sm text-zinc-500">
+              当前没有未公开 DOCUMENT。
+            </p>
+          ) : null}
+        </div>
+      </section>
 
       <div className="mb-5 flex flex-col gap-3 rounded-2xl border border-white/10 bg-black/20 p-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-zinc-400">

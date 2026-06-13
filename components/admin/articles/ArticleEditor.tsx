@@ -256,9 +256,14 @@ export function ArticleEditor({ articleId }: ArticleEditorProps) {
       </section>
 
       <section className="flex flex-col gap-4 rounded-3xl border border-white/10 bg-white/[0.04] p-5 sm:flex-row sm:items-center sm:justify-between">
-        <label className="flex items-center gap-3 text-sm text-zinc-300">
-          <input type="checkbox" {...register("published")} />
-          {uiText.admin.publishPublic}
+        <label className="grid gap-1 text-sm text-zinc-300">
+          <span className="flex items-center gap-3">
+            <input type="checkbox" {...register("published")} />
+            公开展示
+          </span>
+          <span className="text-xs text-zinc-500">
+            不勾选时，DOCUMENT 会保存到后台，但不会在前台展示。
+          </span>
         </label>
         <label className="flex items-center gap-3 text-sm text-zinc-300">
           <input type="checkbox" {...register("featured")} />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { UploadField } from "@/components/admin/UploadField";
 import type { AdminGalleryItem, ApiResult } from "@/components/admin/types";
@@ -307,6 +307,8 @@ export function GalleryManager() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [message, setMessage] = useState("");
+  const [privateReleaseMessage, setPrivateReleaseMessage] = useState("");
+  const [selectedPrivateIds, setSelectedPrivateIds] = useState<string[]>([]);
   const [slugTouched, setSlugTouched] = useState(false);
   const [mediaUrls, setMediaUrls] = useState<string[]>([]);
   const previousTypeRef = useRef<GalleryItemType>(defaultValues.type);
@@ -323,6 +325,14 @@ export function GalleryManager() {
   const type = watch("type");
   const src = watch("src");
   const thumbnail = watch("thumbnail");
+  const published = watch("published");
+
+  const privateItems = useMemo(
+    () => items.filter((item) => !item.published),
+    [items]
+  );
+  const allPrivateSelected =
+    privateItems.length > 0 && selectedPrivateIds.length === privateItems.length;
 
   const loadItems = useCallback(async (query = "", category = "all") => {
     const params = new URLSearchParams();
@@ -338,6 +348,12 @@ export function GalleryManager() {
   useEffect(() => {
     void loadItems("", "all");
   }, [loadItems]);
+
+  useEffect(() => {
+    setSelectedPrivateIds((current) =>
+      current.filter((id) => privateItems.some((item) => item.id === id))
+    );
+  }, [privateItems]);
 
   useEffect(() => {
     if (!activeItem && !slugTouched) {
@@ -452,6 +468,54 @@ export function GalleryManager() {
     await loadItems(search, categoryFilter);
   }
 
+  function togglePrivateSelection(id: string, checked: boolean) {
+    setSelectedPrivateIds((current) =>
+      checked
+        ? Array.from(new Set([...current, id]))
+        : current.filter((selectedId) => selectedId !== id)
+    );
+  }
+
+  function toggleAllPrivateSelection(checked: boolean) {
+    setSelectedPrivateIds(checked ? privateItems.map((item) => item.id) : []);
+  }
+
+  async function releasePrivateWorks(options: {
+    ids?: string[];
+    releaseAll?: boolean;
+  }) {
+    const ids = options.ids ?? [];
+
+    if (!options.releaseAll && ids.length === 0) {
+      setPrivateReleaseMessage("请先选择未公开作品。");
+      return;
+    }
+
+    const response = await fetch("/api/admin/gallery/bulk", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "publish",
+        scope: options.releaseAll ? "unpublished" : "selected",
+        ids
+      })
+    });
+    const result = (await response.json()) as ApiResult<{ count: number }>;
+
+    if (!response.ok || !result.ok) {
+      setPrivateReleaseMessage(result.message ?? "放出未公开作品失败。");
+      return;
+    }
+
+    const count = result.data?.count ?? 0;
+    setPrivateReleaseMessage(`已放出 ${count} 个未公开作品。`);
+    setSelectedPrivateIds([]);
+    if (activeItem && (options.releaseAll || ids.includes(activeItem.id))) {
+      setValue("published", true);
+    }
+    await loadItems(search, categoryFilter);
+  }
+
   return (
     <div className="grid gap-6 2xl:grid-cols-2">
       <section className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
@@ -505,6 +569,87 @@ export function GalleryManager() {
             {uiText.admin.search}
           </button>
         </form>
+
+        <section className="mb-5 rounded-3xl border border-dashed border-white/15 bg-black/20 p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h3 className="text-sm font-medium text-white">未公开 IMAGE</h3>
+              <p className="mt-1 text-xs leading-5 text-zinc-500">
+                上传后未勾选公开的图片和视频会留在这里，可选择一批放出，也可一次放出全部未公开作品。
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() =>
+                  void releasePrivateWorks({ ids: selectedPrivateIds })
+                }
+                className="rounded-full border border-emerald-400/30 px-3 py-1.5 text-xs text-emerald-200"
+              >
+                放出已选
+              </button>
+              <button
+                type="button"
+                onClick={() => void releasePrivateWorks({ releaseAll: true })}
+                className="rounded-full bg-white px-3 py-1.5 text-xs text-zinc-950"
+              >
+                放出全部
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-zinc-500">
+            <label className="flex items-center gap-2 text-zinc-300">
+              <input
+                type="checkbox"
+                checked={allPrivateSelected}
+                onChange={(event) =>
+                  toggleAllPrivateSelection(event.target.checked)
+                }
+              />
+              全选未公开
+            </label>
+            <span>
+              已选 {selectedPrivateIds.length} / {privateItems.length}
+            </span>
+            {privateReleaseMessage ? <span>{privateReleaseMessage}</span> : null}
+          </div>
+
+          <div className="mt-3 grid gap-2">
+            {privateItems.slice(0, 6).map((item) => (
+              <label
+                key={item.id}
+                className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3"
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedPrivateIds.includes(item.id)}
+                  onChange={(event) =>
+                    togglePrivateSelection(item.id, event.target.checked)
+                  }
+                />
+                <span className="min-w-0">
+                  <span className="block truncate text-sm text-zinc-200">
+                    {item.title}
+                  </span>
+                  <span className="mt-1 block truncate text-xs text-zinc-500">
+                    /gallery#{item.slug}
+                  </span>
+                </span>
+              </label>
+            ))}
+            {privateItems.length > 6 ? (
+              <p className="px-4 text-xs text-zinc-500">
+                还有 {privateItems.length - 6} 个未公开作品，可用“放出全部”一次公开。
+              </p>
+            ) : null}
+            {privateItems.length === 0 ? (
+              <p className="rounded-2xl border border-white/10 px-4 py-4 text-sm text-zinc-500">
+                当前没有未公开 IMAGE。
+              </p>
+            ) : null}
+          </div>
+        </section>
 
         <div className="grid gap-3">
           {items.map((item) => {
@@ -696,9 +841,16 @@ export function GalleryManager() {
             className="min-h-28 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-white/40"
             placeholder={uiText.admin.descriptionPlaceholder}
           />
-          <label className="flex items-center gap-3 text-sm text-zinc-300">
-            <input type="checkbox" {...register("published")} />
-            {uiText.admin.publishPublic}
+          <label className="grid gap-1 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-zinc-300">
+            <span className="flex items-center gap-3">
+              <input type="checkbox" {...register("published")} />
+              公开展示
+            </span>
+            <span className="text-xs text-zinc-500">
+              {published
+                ? "保存后会在前台 IMAGE/画廊展示。"
+                : "保存到网站后台，但暂不在前台展示。"}
+            </span>
           </label>
           <label className="flex items-center gap-3 text-sm text-zinc-300">
             <input type="checkbox" {...register("featured")} />

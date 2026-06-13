@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-type BulkAction = "delete" | "feature" | "unfeature" | "publish" | "unpublish";
+type BulkAction = "publish";
 type BulkScope = "selected" | "unpublished";
 
 function parseIds(value: unknown) {
@@ -15,13 +15,7 @@ function parseIds(value: unknown) {
 }
 
 function parseAction(value: unknown): BulkAction | null {
-  return value === "delete" ||
-    value === "feature" ||
-    value === "unfeature" ||
-    value === "publish" ||
-    value === "unpublish"
-    ? value
-    : null;
+  return value === "publish" ? value : null;
 }
 
 function parseScope(value: unknown): BulkScope {
@@ -43,35 +37,15 @@ export async function POST(request: Request) {
   }
 
   if (scope === "selected" && ids.length === 0) {
-    return errorJson("请先选择文档。", 400);
+    return errorJson("请先选择未公开 LAB 项目。", 400);
   }
 
-  if (scope === "unpublished" && action !== "publish") {
-    return errorJson("未公开文档专区只支持批量公开。", 400);
-  }
-
-  if (action === "delete") {
-    const result = await prisma.article.deleteMany({
-      where: { id: { in: ids } }
-    });
-
-    return okJson({ count: result.count });
-  }
-
-  const data =
-    action === "feature"
-      ? { featured: true }
-      : action === "unfeature"
-        ? { featured: false }
-        : action === "publish"
-          ? { published: true }
-          : { published: false };
-  const result = await prisma.article.updateMany({
+  const result = await prisma.labProject.updateMany({
     where:
       scope === "unpublished"
-        ? { published: false }
-        : { id: { in: ids } },
-    data
+        ? { isPublished: false }
+        : { id: { in: ids }, isPublished: false },
+    data: { isPublished: true }
   });
 
   return okJson({ count: result.count });

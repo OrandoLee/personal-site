@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+
 const logoPaths = [
   {
     transform: "translate(0.800218 521.789528)",
@@ -22,9 +26,31 @@ const logoPaths = [
 ];
 
 export function GalleryHeroVisual() {
+  const visualRef = useRef<HTMLDivElement | null>(null);
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    const visual = visualRef.current;
+
+    if (!visual) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting);
+      },
+      { threshold: 0 }
+    );
+
+    observer.observe(visual);
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div className="gallery-hero-visual" aria-hidden="true">
-      <div className="gallery-exposure" />
+    <div ref={visualRef} className="gallery-hero-visual" aria-hidden="true">
+      {isVisible ? <div className="gallery-exposure" /> : null}
       <div className="gallery-visual-stage">
         <div className="gallery-visual-stage__grain" />
 

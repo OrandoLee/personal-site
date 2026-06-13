@@ -48,8 +48,23 @@ export default async function ArticlesPage({ searchParams }: ArticlesPageProps) 
           taglineRatio="1660 / 90"
           taglineWidth="82%"
         />
-        <h1 className="mt-4 max-w-[875px] font-serif text-[2.35rem] font-semibold leading-[1.14] text-archive-ink sm:text-7xl sm:leading-tight">
-          {uiText.articles.heroTitle}
+        <h1
+          aria-label={uiText.articles.heroTitle}
+          className="articles-hero-title mt-4 max-w-[875px] font-serif text-[2.35rem] font-semibold leading-[1.14] text-archive-ink sm:text-7xl sm:leading-tight"
+        >
+          <span className="articles-hero-title__line" aria-hidden="true">
+            <span className="articles-hero-title__text">
+              文本作品、观察札记、
+            </span>
+          </span>
+          <span
+            className="articles-hero-title__line articles-hero-title__line--second"
+            aria-hidden="true"
+          >
+            <span className="articles-hero-title__text">
+              长期想法和创作记录。
+            </span>
+          </span>
         </h1>
       </section>
 

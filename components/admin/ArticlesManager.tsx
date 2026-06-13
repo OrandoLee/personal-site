@@ -343,7 +343,7 @@ export function ArticleCollectionsManager() {
   }
 
   return (
-    <section className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
+    <section className="min-w-0 overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-5">
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h2 className="font-serif text-2xl font-semibold">文档合集</h2>
@@ -361,16 +361,16 @@ export function ArticleCollectionsManager() {
       </div>
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-        <div className="grid gap-3">
+        <div className="grid min-w-0 gap-3">
           {collections.map((collection) => (
             <article
               key={collection.id}
               className="rounded-2xl border border-white/10 bg-black/20 p-4"
             >
               <div className="flex items-start justify-between gap-3">
-                <div>
+                <div className="min-w-0">
                   <h3 className="font-medium text-white">{collection.title}</h3>
-                  <p className="mt-1 text-xs text-zinc-500">
+                  <p className="mt-1 truncate text-xs text-zinc-500">
                     /articles/collections/{collection.slug}
                   </p>
                 </div>
@@ -416,8 +416,8 @@ export function ArticleCollectionsManager() {
           ) : null}
         </div>
 
-        <div className="grid gap-4 rounded-2xl border border-white/10 bg-black/20 p-4">
-          <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid min-w-0 gap-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+          <div className="grid min-w-0 gap-4 sm:grid-cols-2">
             <input
               value={form.title}
               onChange={(event) =>
@@ -427,7 +427,7 @@ export function ArticleCollectionsManager() {
                   slug: current.slug ? current.slug : slugify(event.target.value)
                 }))
               }
-              className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm outline-none focus:border-white/40"
+              className="min-w-0 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm outline-none focus:border-white/40"
               placeholder="合集标题（可选）"
             />
             <input
@@ -435,7 +435,7 @@ export function ArticleCollectionsManager() {
               onChange={(event) =>
                 setForm((current) => ({ ...current, slug: event.target.value }))
               }
-              className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm outline-none focus:border-white/40"
+              className="min-w-0 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm outline-none focus:border-white/40"
               placeholder="collection-slug（可选）"
             />
           </div>
@@ -444,7 +444,7 @@ export function ArticleCollectionsManager() {
             onChange={(event) =>
               setForm((current) => ({ ...current, summary: event.target.value }))
             }
-            className="min-h-24 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm outline-none focus:border-white/40"
+            className="min-h-24 min-w-0 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm outline-none focus:border-white/40"
             placeholder="合集简介（可选）"
           />
           <UploadField
@@ -489,10 +489,10 @@ export function ArticleCollectionsManager() {
               event.preventDefault();
               void uploadFiles(Array.from(event.dataTransfer.files ?? []));
             }}
-            className="grid gap-4 rounded-2xl border border-dashed border-white/15 bg-white/[0.03] p-4"
+            className="grid min-w-0 gap-4 rounded-2xl border border-dashed border-white/15 bg-white/[0.03] p-4"
           >
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
+              <div className="min-w-0">
                 <h3 className="text-sm font-medium text-zinc-200">批量上传文档</h3>
                 <p className="mt-1 text-xs leading-5 text-zinc-500">
                   支持 Markdown、ZIP、DOCX。文件会自动导入、加入当前合集并公开。
@@ -552,9 +552,9 @@ export function ArticleCollectionsManager() {
             ) : null}
           </section>
 
-          <div className="grid gap-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+          <div className="grid min-w-0 gap-4 rounded-2xl border border-white/10 bg-black/20 p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
+              <div className="min-w-0">
                 <h3 className="text-sm font-medium text-zinc-200">合集内文档</h3>
                 <p className="mt-1 text-xs text-zinc-500">
                   已加入 {selectedArticles.length} 篇文档
@@ -563,7 +563,7 @@ export function ArticleCollectionsManager() {
               <input
                 value={articleSearch}
                 onChange={(event) => setArticleSearch(event.target.value)}
-                className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-white/40 sm:w-72"
+                className="min-w-0 rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm outline-none focus:border-white/40 sm:w-72"
                 placeholder="搜索已有文档"
               />
             </div>
@@ -600,7 +600,7 @@ export function ArticleCollectionsManager() {
               <h3 className="mb-3 text-sm font-medium text-zinc-200">
                 添加已有文档
               </h3>
-              <div className="max-h-80 overflow-auto rounded-2xl border border-white/10">
+              <div className="max-h-80 min-w-0 overflow-auto rounded-2xl border border-white/10">
                 {availableArticles.map((article) => (
                   <article
                     key={article.id}

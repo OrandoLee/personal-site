@@ -35,27 +35,52 @@ export default async function LabPage({ searchParams }: LabPageProps) {
       : "这个分类下暂时没有公开实验。";
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
-      <section className="mb-12 rounded-3xl bg-archive-paper2/70 p-7 sm:p-10">
-        <SectionTitleLogo
-          ariaLabel="Lab. Born from thought, built for value."
-          className="mb-7"
-          main="/section-logos/lab-main.svg"
-          mainRatio="630 / 290"
-          maxWidth="350px"
-          tagline="/section-logos/lab-tagline.svg"
-          taglineRatio="1670 / 340"
-          taglineWidth="95%"
-        />
-        <h1 className="lab-title mt-4 max-w-none font-serif text-5xl font-semibold leading-tight text-archive-ink sm:text-7xl">
-          <span className="lab-title-line">实验性作品、系统，</span>
-          <span className="lab-title-line">以及尚未完成的项目。</span>
-        </h1>
-        <div className="mt-7 max-w-2xl text-base leading-8 text-archive-muted">
-          <p>
-            这里存放一些尚未完全命名的实验性项目、交互系统、视觉系统和小游戏原型。
-          </p>
-          <p>它们不一定完整，但都指向某种正在形成的东西。</p>
+    <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+      <section className="lab-crt-hero mb-12" aria-labelledby="lab-page-title">
+        <div className="lab-crt-shell">
+          <div className="lab-crt-speaker" aria-hidden="true" />
+          <div className="lab-crt-screen">
+            <div className="lab-crt-content">
+              <SectionTitleLogo
+                ariaLabel="Lab. Born from thought, built for value."
+                className="lab-logo-crt mb-7"
+                main="/section-logos/lab-main.svg"
+                mainRatio="630 / 290"
+                maxWidth="300px"
+                tagline="/section-logos/lab-tagline.svg"
+                taglineRatio="1670 / 340"
+                taglineWidth="95%"
+              />
+              <h1
+                id="lab-page-title"
+                className="lab-title lab-type-title mt-4 max-w-none font-serif text-5xl font-semibold leading-tight sm:text-7xl"
+              >
+                <span className="lab-title-line lab-type-line lab-type-line--one">
+                  <span className="lab-type-text">实验性作品、系统，</span>
+                </span>
+                <span className="lab-title-line lab-type-line lab-type-line--two">
+                  <span className="lab-type-text">以及尚未完成</span>
+                  <span className="lab-type-text lab-type-text--tail">的项目。</span>
+                  <span className="lab-type-cursor" aria-hidden="true" />
+                </span>
+              </h1>
+              <div className="lab-type-body mt-7 max-w-2xl text-base leading-8">
+                <p className="lab-copy-line lab-copy-line--one">
+                  <span>
+                    这里存放一些尚未完全命名的实验性项目、交互系统、视觉系统和小游戏原型。
+                  </span>
+                </p>
+                <p className="lab-copy-line lab-copy-line--two">
+                  <span>它们不一定完整，但都指向某种正在形成的东西。</span>
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="lab-crt-panel" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </div>
         </div>
       </section>
 

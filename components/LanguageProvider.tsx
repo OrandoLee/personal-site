@@ -59,6 +59,33 @@ function shouldSkipElement(element: Element | null) {
   );
 }
 
+function shouldSkipMotionElement(element: Element | null) {
+  if (shouldSkipElement(element)) {
+    return true;
+  }
+
+  return Boolean(
+    element?.closest(
+      [
+        "header",
+        "nav",
+        "a",
+        "button",
+        "input",
+        "textarea",
+        "select",
+        "label",
+        "[role='button']",
+        "[role='group']",
+        ".sr-only",
+        ".language-switcher",
+        ".orask-memo",
+        ".orask-paper"
+      ].join(", ")
+    )
+  );
+}
+
 function isElementActuallyVisible(element: Element | null) {
   let current: Element | null = element;
 
@@ -189,63 +216,80 @@ function applyLanguageToTree(root: ParentNode, language: SiteLanguage) {
 }
 
 function collectVisibleTextRects() {
-  const shell = document.querySelector(".archive-shell");
+  const roots = Array.from(
+    document.querySelectorAll<HTMLElement>("main, footer")
+  );
 
-  if (!shell) {
+  if (roots.length === 0) {
     return [];
   }
 
   const items: LanguageMotionItem[] = [];
-  const walker = document.createTreeWalker(shell, NodeFilter.SHOW_TEXT, {
-    acceptNode(node) {
-      if (!/[\u3400-\u9fff]/.test(node.textContent ?? "")) {
-        return NodeFilter.FILTER_REJECT;
-      }
 
-      return shouldSkipElement((node as Text).parentElement)
-        ? NodeFilter.FILTER_REJECT
-        : NodeFilter.FILTER_ACCEPT;
-    }
-  });
-
-  let node = walker.nextNode() as Text | null;
-
-  while (node && items.length < 42) {
-    const parent = node.parentElement;
-
-    if (parent && node.data.trim() && isElementActuallyVisible(parent)) {
-      const range = document.createRange();
-      range.selectNodeContents(node);
-      const rects = Array.from(range.getClientRects());
-
-      for (const rect of rects) {
-        if (
-          rect.width > 6 &&
-          rect.height > 6 &&
-          rect.bottom >= 0 &&
-          rect.top <= window.innerHeight &&
-          rect.right >= 0 &&
-          rect.left <= window.innerWidth
-        ) {
-          items.push({
-            id: items.length,
-            left: Math.max(0, rect.left),
-            top: Math.max(0, rect.top),
-            width: Math.min(window.innerWidth - Math.max(0, rect.left), rect.width),
-            height: rect.height,
-            delay: Math.min(items.length * 18, 420)
-          });
+  for (const root of roots) {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        if (!/[\u3400-\u9fff]/.test(node.textContent ?? "")) {
+          return NodeFilter.FILTER_REJECT;
         }
 
-        if (items.length >= 42) {
-          break;
+        return shouldSkipMotionElement((node as Text).parentElement)
+          ? NodeFilter.FILTER_REJECT
+          : NodeFilter.FILTER_ACCEPT;
+      }
+    });
+
+    let node = walker.nextNode() as Text | null;
+
+    while (node && items.length < 36) {
+      const parent = node.parentElement;
+
+      if (parent && node.data.trim() && isElementActuallyVisible(parent)) {
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        const rects = Array.from(range.getClientRects());
+
+        for (const rect of rects) {
+          const visibleLeft = Math.max(0, rect.left);
+          const visibleWidth = Math.min(
+            window.innerWidth - visibleLeft,
+            rect.width
+          );
+          const eraserHeight = Math.max(8, Math.min(rect.height * 0.46, 22));
+          const eraserTop = rect.top + (rect.height - eraserHeight) * 0.56;
+
+          if (
+            visibleWidth > 8 &&
+            eraserHeight > 6 &&
+            rect.bottom >= 0 &&
+            rect.top <= window.innerHeight &&
+            rect.right >= 0 &&
+            rect.left <= window.innerWidth
+          ) {
+            items.push({
+              id: items.length,
+              left: visibleLeft,
+              top: eraserTop,
+              width: visibleWidth,
+              height: eraserHeight,
+              delay: Math.min(items.length * 16, 360)
+            });
+          }
+
+          if (items.length >= 36) {
+            break;
+          }
         }
+
+        range.detach();
       }
 
-      range.detach();
+      node = walker.nextNode() as Text | null;
     }
 
-    node = walker.nextNode() as Text | null;
+    if (items.length >= 36) {
+      break;
+    }
   }
 
   return items;

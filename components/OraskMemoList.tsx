@@ -3,6 +3,7 @@
 import {
   type CSSProperties,
   type FormEvent,
+  type KeyboardEvent,
   useEffect,
   useRef,
   useState
@@ -52,37 +53,80 @@ function createMemoItem() {
 
 export function OraskMemoList() {
   const [items, setItems] = useState<MemoItem[]>(initialItems);
-  const newItemRef = useRef<HTMLSpanElement | null>(null);
+  const newItemRef = useRef<HTMLTextAreaElement | null>(null);
+  const editableRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
+  const latestText = useRef<Record<string, string>>(
+    Object.fromEntries(initialItems.map((item) => [item.id, item.text]))
+  );
   const shouldFocusNewItem = useRef(false);
+
+  function resizeEditable(element: HTMLTextAreaElement | null) {
+    if (!element) return;
+    element.style.height = "auto";
+    element.style.height = `${element.scrollHeight}px`;
+  }
+
+  useEffect(() => {
+    for (const element of Object.values(editableRefs.current)) {
+      resizeEditable(element);
+    }
+  }, [items.length]);
 
   useEffect(() => {
     if (shouldFocusNewItem.current && newItemRef.current) {
       shouldFocusNewItem.current = false;
       newItemRef.current.focus();
+      resizeEditable(newItemRef.current);
     }
   }, [items.length]);
 
+  function readItemText(id: string) {
+    return editableRefs.current[id]?.value ?? latestText.current[id] ?? "";
+  }
+
   function toggleItem(id: string) {
+    const text = readItemText(id);
+    latestText.current[id] = text;
     setItems((current) =>
       current.map((item) =>
-        item.id === id ? { ...item, checked: !item.checked } : item
+        item.id === id ? { ...item, text, checked: !item.checked } : item
       )
     );
   }
 
   function updateItem(id: string, text: string) {
+    latestText.current[id] = text;
     setItems((current) =>
-      current.map((item) => (item.id === id ? { ...item, text } : item))
+      current.map((item) =>
+        item.id === id && item.text !== text ? { ...item, text } : item
+      )
     );
   }
 
   function addItem() {
+    const newItem = createMemoItem();
+    latestText.current[newItem.id] = newItem.text;
     shouldFocusNewItem.current = true;
-    setItems((current) => [...current, createMemoItem()]);
+    setItems((current) => [...current, newItem]);
   }
 
-  function handleEditableInput(id: string, event: FormEvent<HTMLSpanElement>) {
-    updateItem(id, event.currentTarget.textContent ?? "");
+  function handleEditableInput(id: string, event: FormEvent<HTMLTextAreaElement>) {
+    latestText.current[id] = event.currentTarget.value;
+    resizeEditable(event.currentTarget);
+  }
+
+  function handleEditableBlur(id: string, event: FormEvent<HTMLTextAreaElement>) {
+    updateItem(id, event.currentTarget.value);
+  }
+
+  function handleEditableKeyDown(
+    item: MemoItem,
+    event: KeyboardEvent<HTMLTextAreaElement>
+  ) {
+    if (item.fixedLine && event.key === "Enter") {
+      event.preventDefault();
+      event.currentTarget.blur();
+    }
   }
 
   return (
@@ -135,23 +179,25 @@ export function OraskMemoList() {
                 </svg>
               </button>
               <div className="orask-memo-item__body">
-                <span
-                  ref={
-                    index === items.length - 1 && !item.text
-                      ? newItemRef
-                      : undefined
-                  }
+                <textarea
+                  ref={(element) => {
+                    editableRefs.current[item.id] = element;
+                    if (index === items.length - 1 && !item.text) {
+                      newItemRef.current = element;
+                    }
+                  }}
                   className={cn(
                     "orask-memo-item__text",
                     item.fixedLine && "orask-memo-item__text--fixed"
                   )}
-                  contentEditable
                   aria-label="编辑这一条 Orask 想法"
+                  defaultValue={item.text}
                   onInput={(event) => handleEditableInput(item.id, event)}
-                  suppressContentEditableWarning
-                >
-                  {item.text}
-                </span>
+                  onBlur={(event) => handleEditableBlur(item.id, event)}
+                  onKeyDown={(event) => handleEditableKeyDown(item, event)}
+                  rows={1}
+                  wrap={item.fixedLine ? "off" : "soft"}
+                />
                 <span className="orask-memo-item__strike" aria-hidden="true" />
               </div>
             </div>

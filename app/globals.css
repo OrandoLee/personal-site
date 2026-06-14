@@ -571,10 +571,13 @@ video {
 
 .orask-memo-item__text {
   display: block;
-  width: fit-content;
+  width: 100%;
   min-width: 1.5ch;
   min-height: 1.13em;
   max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: inherit;
   font-family:
     "Noto Serif SC",
@@ -586,8 +589,10 @@ video {
   font-weight: 700;
   line-height: 1.13;
   overflow-wrap: anywhere;
+  overflow: hidden;
   caret-color: rgb(var(--archive-clay));
   outline: none;
+  resize: none;
   text-shadow: 0 0 0 rgb(var(--archive-ink) / 0.9);
   animation:
     orask-memo-title-write 1280ms steps(18, end)
@@ -601,6 +606,7 @@ video {
 }
 
 .orask-memo-item__text--fixed {
+  overflow-wrap: normal;
   white-space: nowrap;
 }
 

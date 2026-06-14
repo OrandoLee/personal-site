@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LabTypedTitle } from "@/components/LabTypedTitle";
 import { LabProjectList } from "@/components/LabProjectList";
 import { SectionTitleLogo } from "@/components/SectionTitleLogo";
 import {
@@ -51,19 +52,10 @@ export default async function LabPage({ searchParams }: LabPageProps) {
                 taglineRatio="1670 / 340"
                 taglineWidth="95%"
               />
-              <h1
+              <LabTypedTitle
                 id="lab-page-title"
                 className="lab-title lab-type-title mt-4 max-w-none font-serif text-5xl font-semibold leading-tight sm:text-7xl"
-              >
-                <span className="lab-title-line lab-type-line lab-type-line--one">
-                  <span className="lab-type-text">实验性作品、系统，</span>
-                </span>
-                <span className="lab-title-line lab-type-line lab-type-line--two">
-                  <span className="lab-type-text">以及尚未完成</span>
-                  <span className="lab-type-text lab-type-text--tail">的项目。</span>
-                  <span className="lab-type-cursor" aria-hidden="true" />
-                </span>
-              </h1>
+              />
               <div className="lab-type-body mt-7 max-w-2xl text-base leading-8">
                 <p className="lab-copy-line lab-copy-line--one">
                   <span>

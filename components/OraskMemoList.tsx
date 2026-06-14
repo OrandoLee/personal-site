@@ -14,12 +14,31 @@ type MemoItem = {
   text: string;
   checked: boolean;
   delay: string;
+  fixedLine?: boolean;
 };
 
 const initialItems: MemoItem[] = [
-  { id: "question", text: "留下一条问题", checked: false, delay: "0ms" },
-  { id: "suggestion", text: "留下一条建议", checked: false, delay: "360ms" },
-  { id: "idea", text: "或一个想法。", checked: false, delay: "720ms" }
+  {
+    id: "question",
+    text: "留下一条问题",
+    checked: false,
+    delay: "0ms",
+    fixedLine: true
+  },
+  {
+    id: "suggestion",
+    text: "留下一条建议",
+    checked: false,
+    delay: "360ms",
+    fixedLine: true
+  },
+  {
+    id: "idea",
+    text: "或一个想法。",
+    checked: false,
+    delay: "720ms",
+    fixedLine: true
+  }
 ];
 
 function createMemoItem() {
@@ -122,7 +141,10 @@ export function OraskMemoList() {
                       ? newItemRef
                       : undefined
                   }
-                  className="orask-memo-item__text"
+                  className={cn(
+                    "orask-memo-item__text",
+                    item.fixedLine && "orask-memo-item__text--fixed"
+                  )}
                   contentEditable
                   aria-label="编辑这一条 Orask 想法"
                   onInput={(event) => handleEditableInput(item.id, event)}

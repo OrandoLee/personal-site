@@ -467,24 +467,6 @@ video {
   padding: clamp(0.5rem, 1.5vw, 0.8rem) 0;
 }
 
-.orask-memo__paper::before {
-  position: absolute;
-  top: 0.25rem;
-  bottom: 0.2rem;
-  left: clamp(1.9rem, 5.4vw, 3.15rem);
-  width: 1px;
-  background: linear-gradient(
-    rgb(var(--archive-clay) / 0),
-    rgb(var(--archive-clay) / 0.24) 12%,
-    rgb(var(--archive-clay) / 0.2) 88%,
-    rgb(var(--archive-clay) / 0)
-  );
-  content: "";
-  transform: scaleY(0);
-  transform-origin: top center;
-  animation: orask-memo-rule-draw 880ms ease 520ms both;
-}
-
 .orask-memo__lines {
   display: grid;
   gap: clamp(0.28rem, 0.95vw, 0.72rem);
@@ -600,7 +582,7 @@ video {
     SimSun,
     Georgia,
     serif;
-  font-size: clamp(2.72rem, 6.4vw, 5.05rem);
+  font-size: clamp(2.34rem, 5.25vw, 3.82rem);
   font-weight: 700;
   line-height: 1.13;
   overflow-wrap: anywhere;
@@ -618,9 +600,13 @@ video {
     opacity 280ms ease;
 }
 
+.orask-memo-item__text--fixed {
+  white-space: nowrap;
+}
+
 .orask-memo-item--checked .orask-memo-item__text {
   color: rgb(var(--archive-muted) / 0.72);
-  font-size: clamp(2.38rem, 5.75vw, 4.45rem);
+  font-size: clamp(2.12rem, 4.8vw, 3.45rem);
   animation: none;
   clip-path: none;
   filter: none;
@@ -1410,16 +1396,6 @@ video {
   }
 }
 
-@keyframes orask-memo-rule-draw {
-  from {
-    transform: scaleY(0);
-  }
-
-  to {
-    transform: scaleY(1);
-  }
-}
-
 @keyframes orask-circle-draw {
   0% {
     opacity: 0;
@@ -2185,7 +2161,6 @@ video {
   .articles-hero-title__line::before,
   .articles-hero-title__line::after,
   .group:hover .article-card-title,
-  .orask-memo__paper::before,
   .orask-memo-item__circle-svg path,
   .orask-memo-item__check-svg path,
   .orask-memo-item__text,

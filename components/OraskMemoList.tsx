@@ -124,7 +124,7 @@ export function OraskMemoList() {
                   }
                   className="orask-memo-item__text"
                   contentEditable
-                  data-placeholder="写下新的想法"
+                  aria-label="编辑这一条 Orask 想法"
                   onInput={(event) => handleEditableInput(item.id, event)}
                   suppressContentEditableWarning
                 >

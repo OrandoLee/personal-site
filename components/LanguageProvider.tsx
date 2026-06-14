@@ -63,6 +63,41 @@ function shouldSkipElement(element: Element | null) {
   );
 }
 
+function isElementActuallyVisible(element: Element | null) {
+  let current: Element | null = element;
+
+  while (current && current !== document.body) {
+    if (
+      current.hasAttribute("hidden") ||
+      current.hasAttribute("inert") ||
+      current.getAttribute("aria-hidden") === "true"
+    ) {
+      return false;
+    }
+
+    const style = window.getComputedStyle(current);
+
+    if (
+      style.display === "none" ||
+      style.visibility === "hidden" ||
+      style.visibility === "collapse" ||
+      Number(style.opacity) < 0.08
+    ) {
+      return false;
+    }
+
+    const rect = current.getBoundingClientRect();
+
+    if (rect.width <= 0 || rect.height <= 0) {
+      return false;
+    }
+
+    current = current.parentElement;
+  }
+
+  return true;
+}
+
 function applyTextNodeLanguage(node: Text, language: SiteLanguage) {
   if (shouldSkipElement(node.parentElement)) {
     return;
@@ -184,7 +219,7 @@ function collectVisibleText(language: SiteLanguage) {
     const source = textOriginals.get(node) ?? node.data;
     const target = translateText(source, language).trim();
 
-    if (parent && target) {
+    if (parent && target && isElementActuallyVisible(parent)) {
       const range = document.createRange();
       range.selectNodeContents(node);
       const rects = Array.from(range.getClientRects());

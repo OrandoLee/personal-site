@@ -8,11 +8,14 @@ import {
   useRef,
   useState
 } from "react";
+import { useSiteLanguage } from "@/components/LanguageProvider";
 import { cn } from "@/lib/classNames";
+import { translateText } from "@/lib/language";
 
 type MemoItem = {
   id: string;
   text: string;
+  sourceText?: string;
   checked: boolean;
   delay: string;
   fixedLine?: boolean;
@@ -21,6 +24,7 @@ type MemoItem = {
 const initialItems: MemoItem[] = [
   {
     id: "question",
+    sourceText: "留下一条问题",
     text: "留下一条问题",
     checked: false,
     delay: "0ms",
@@ -28,6 +32,7 @@ const initialItems: MemoItem[] = [
   },
   {
     id: "suggestion",
+    sourceText: "留下一条建议",
     text: "留下一条建议",
     checked: false,
     delay: "360ms",
@@ -35,6 +40,7 @@ const initialItems: MemoItem[] = [
   },
   {
     id: "idea",
+    sourceText: "或一个想法。",
     text: "或一个想法。",
     checked: false,
     delay: "720ms",
@@ -52,6 +58,7 @@ function createMemoItem() {
 }
 
 export function OraskMemoList() {
+  const { language } = useSiteLanguage();
   const [items, setItems] = useState<MemoItem[]>(initialItems);
   const newItemRef = useRef<HTMLTextAreaElement | null>(null);
   const editableRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
@@ -71,6 +78,28 @@ export function OraskMemoList() {
       resizeEditable(element);
     }
   }, [items.length]);
+
+  useEffect(() => {
+    setItems((current) =>
+      current.map((item) => {
+        if (!item.sourceText) {
+          return item;
+        }
+
+        const text = translateText(item.sourceText, language);
+        latestText.current[item.id] = text;
+
+        const element = editableRefs.current[item.id];
+
+        if (element && element.value !== text) {
+          element.value = text;
+          resizeEditable(element);
+        }
+
+        return item.text === text ? item : { ...item, text };
+      })
+    );
+  }, [language]);
 
   useEffect(() => {
     if (shouldFocusNewItem.current && newItemRef.current) {

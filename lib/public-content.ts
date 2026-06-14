@@ -12,7 +12,7 @@ import {
 } from "@/lib/default-covers";
 
 type AutoUpdateSource = UpdateItem & {
-  updatedAt: Date;
+  createdAt: Date;
   featuredRank: number;
 };
 
@@ -24,7 +24,7 @@ export async function getPublicUpdates() {
   const [articles, galleryItems, defaultCovers] = await Promise.all([
     prisma.article.findMany({
       where: { published: true },
-      orderBy: [{ updatedAt: "desc" }],
+      orderBy: [{ createdAt: "desc" }],
       select: {
         id: true,
         title: true,
@@ -33,12 +33,12 @@ export async function getPublicUpdates() {
         summary: true,
         cover: true,
         featured: true,
-        updatedAt: true
+        createdAt: true
       }
     }),
     prisma.galleryItem.findMany({
       where: { published: true },
-      orderBy: [{ updatedAt: "desc" }],
+      orderBy: [{ createdAt: "desc" }],
       select: {
         id: true,
         title: true,
@@ -48,7 +48,7 @@ export async function getPublicUpdates() {
         thumbnail: true,
         description: true,
         featured: true,
-        updatedAt: true
+        createdAt: true
       }
     }),
     getDefaultCoverMap()
@@ -59,7 +59,7 @@ export async function getPublicUpdates() {
       id: `article-${article.id}`,
       title: article.title,
       type: "article" as const,
-      date: dateToInput(article.updatedAt),
+      date: dateToInput(article.createdAt),
       description: article.summary,
       cover:
         article.cover ??
@@ -68,13 +68,13 @@ export async function getPublicUpdates() {
       link: `/articles/${article.slug}`,
       featured: article.featured,
       featuredRank: article.featured ? 1 : 0,
-      updatedAt: article.updatedAt
+      createdAt: article.createdAt
     })),
     ...galleryItems.map((item) => ({
       id: `gallery-${item.id}`,
       title: item.title,
       type: galleryUpdateType(item.type),
-      date: dateToInput(item.updatedAt),
+      date: dateToInput(item.createdAt),
       description: item.description,
       cover:
         item.thumbnail ??
@@ -82,7 +82,7 @@ export async function getPublicUpdates() {
       link: `/gallery#${item.slug}`,
       featured: item.featured,
       featuredRank: item.featured ? 1 : 0,
-      updatedAt: item.updatedAt
+      createdAt: item.createdAt
     }))
   ];
 
@@ -92,9 +92,9 @@ export async function getPublicUpdates() {
         return b.featuredRank - a.featuredRank;
       }
 
-      return b.updatedAt.getTime() - a.updatedAt.getTime();
+      return b.createdAt.getTime() - a.createdAt.getTime();
     })
-    .map(({ updatedAt: _updatedAt, featuredRank: _featuredRank, ...update }) => update);
+    .map(({ createdAt: _createdAt, featuredRank: _featuredRank, ...update }) => update);
 }
 
 export async function getPublicGalleryItems() {

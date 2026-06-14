@@ -2,7 +2,6 @@
 
 import {
   createContext,
-  type CSSProperties,
   type ReactNode,
   useCallback,
   useContext,
@@ -24,15 +23,6 @@ type LanguageContextValue = {
   splashEnabled: boolean;
   chooseLanguage: (language: SiteLanguage) => void;
   switchLanguage: (language: SiteLanguage) => void;
-};
-
-type LanguageMotionItem = {
-  id: number;
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-  delay: number;
 };
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
@@ -57,68 +47,6 @@ function shouldSkipElement(element: Element | null) {
       "script, style, noscript, svg, canvas, code, pre, [data-no-translate]"
     )
   );
-}
-
-function shouldSkipMotionElement(element: Element | null) {
-  if (shouldSkipElement(element)) {
-    return true;
-  }
-
-  return Boolean(
-    element?.closest(
-      [
-        "header",
-        "nav",
-        "a",
-        "button",
-        "input",
-        "textarea",
-        "select",
-        "label",
-        "[role='button']",
-        "[role='group']",
-        ".sr-only",
-        ".language-switcher",
-        ".orask-memo",
-        ".orask-paper"
-      ].join(", ")
-    )
-  );
-}
-
-function isElementActuallyVisible(element: Element | null) {
-  let current: Element | null = element;
-
-  while (current && current !== document.body) {
-    if (
-      current.hasAttribute("hidden") ||
-      current.hasAttribute("inert") ||
-      current.getAttribute("aria-hidden") === "true"
-    ) {
-      return false;
-    }
-
-    const style = window.getComputedStyle(current);
-
-    if (
-      style.display === "none" ||
-      style.visibility === "hidden" ||
-      style.visibility === "collapse" ||
-      Number(style.opacity) < 0.08
-    ) {
-      return false;
-    }
-
-    const rect = current.getBoundingClientRect();
-
-    if (rect.width <= 0 || rect.height <= 0) {
-      return false;
-    }
-
-    current = current.parentElement;
-  }
-
-  return true;
 }
 
 function applyTextNodeLanguage(node: Text, language: SiteLanguage) {
@@ -215,86 +143,6 @@ function applyLanguageToTree(root: ParentNode, language: SiteLanguage) {
   }
 }
 
-function collectVisibleTextRects() {
-  const roots = Array.from(
-    document.querySelectorAll<HTMLElement>("main, footer")
-  );
-
-  if (roots.length === 0) {
-    return [];
-  }
-
-  const items: LanguageMotionItem[] = [];
-
-  for (const root of roots) {
-    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-      acceptNode(node) {
-        if (!/[\u3400-\u9fff]/.test(node.textContent ?? "")) {
-          return NodeFilter.FILTER_REJECT;
-        }
-
-        return shouldSkipMotionElement((node as Text).parentElement)
-          ? NodeFilter.FILTER_REJECT
-          : NodeFilter.FILTER_ACCEPT;
-      }
-    });
-
-    let node = walker.nextNode() as Text | null;
-
-    while (node && items.length < 36) {
-      const parent = node.parentElement;
-
-      if (parent && node.data.trim() && isElementActuallyVisible(parent)) {
-        const range = document.createRange();
-        range.selectNodeContents(node);
-        const rects = Array.from(range.getClientRects());
-
-        for (const rect of rects) {
-          const visibleLeft = Math.max(0, rect.left);
-          const visibleWidth = Math.min(
-            window.innerWidth - visibleLeft,
-            rect.width
-          );
-          const eraserHeight = Math.max(8, Math.min(rect.height * 0.46, 22));
-          const eraserTop = rect.top + (rect.height - eraserHeight) * 0.56;
-
-          if (
-            visibleWidth > 8 &&
-            eraserHeight > 6 &&
-            rect.bottom >= 0 &&
-            rect.top <= window.innerHeight &&
-            rect.right >= 0 &&
-            rect.left <= window.innerWidth
-          ) {
-            items.push({
-              id: items.length,
-              left: visibleLeft,
-              top: eraserTop,
-              width: visibleWidth,
-              height: eraserHeight,
-              delay: Math.min(items.length * 16, 360)
-            });
-          }
-
-          if (items.length >= 36) {
-            break;
-          }
-        }
-
-        range.detach();
-      }
-
-      node = walker.nextNode() as Text | null;
-    }
-
-    if (items.length >= 36) {
-      break;
-    }
-  }
-
-  return items;
-}
-
 function ChoiceGate({
   onChoose
 }: {
@@ -321,39 +169,11 @@ function ChoiceGate({
   );
 }
 
-function LanguageMotionOverlay({ items }: { items: LanguageMotionItem[] }) {
-  if (items.length === 0) {
-    return null;
-  }
-
-  return (
-    <div className="language-motion-overlay" aria-hidden="true" data-no-translate>
-      {items.map((item) => (
-        <div key={`erase-${item.id}`}>
-          <span
-            className="language-motion-overlay__eraser"
-            style={
-              {
-                left: item.left,
-                top: item.top,
-                width: item.width,
-                height: item.height,
-                "--language-motion-delay": `${item.delay}ms`
-              } as CSSProperties
-            }
-          />
-        </div>
-      ))}
-    </div>
-  );
-}
-
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguage] = useState<SiteLanguage>("zh-Hans");
   const [hasChosenLanguage, setHasChosenLanguage] = useState(false);
   const [isBootstrapped, setIsBootstrapped] = useState(false);
   const [splashEnabled, setSplashEnabled] = useState(false);
-  const [motionItems, setMotionItems] = useState<LanguageMotionItem[]>([]);
   const observerRef = useRef<MutationObserver | null>(null);
   const languageRef = useRef(language);
 
@@ -434,19 +254,16 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      const items = collectVisibleTextRects();
-      setMotionItems(items);
       document.body.classList.add("language-switching");
 
       window.setTimeout(() => {
         window.localStorage.setItem(LANGUAGE_STORAGE_KEY, nextLanguage);
         setLanguage(nextLanguage);
-      }, 360);
+      }, 140);
 
       window.setTimeout(() => {
         document.body.classList.remove("language-switching");
-        setMotionItems([]);
-      }, 900);
+      }, 420);
     },
     []
   );
@@ -475,7 +292,6 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       {isBootstrapped && !hasChosenLanguage ? (
         <ChoiceGate onChoose={chooseLanguage} />
       ) : null}
-      <LanguageMotionOverlay items={motionItems} />
     </LanguageContext.Provider>
   );
 }

@@ -23,7 +23,7 @@ export function LanguageSwitcher() {
           className={cn(
             "language-switcher__button rounded-full px-4 py-2 text-sm font-medium leading-none transition duration-200",
             language === option
-              ? "bg-archive-ink text-archive-paper2"
+              ? "bg-archive-paper2 text-archive-ink"
               : "text-archive-muted hover:bg-archive-paper2 hover:text-archive-ink"
           )}
           aria-pressed={language === option}

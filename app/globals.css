@@ -290,59 +290,60 @@ video {
     0 0.45rem 1.1rem rgb(var(--archive-shadow) / 0.16);
 }
 
-.language-motion-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 10001;
-  pointer-events: none;
+.archive-shell
+  :where(
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    p,
+    span,
+    a,
+    li,
+    dt,
+    dd,
+    button,
+    label,
+    time,
+    strong,
+    em,
+    small,
+    figcaption,
+    blockquote
+  ) {
+  transition:
+    opacity 180ms ease,
+    filter 180ms ease;
 }
 
-.language-motion-overlay__eraser {
-  position: absolute;
-  display: block;
-  pointer-events: none;
-}
-
-.language-motion-overlay__eraser {
-  border-radius: 0.2rem;
-  background:
-    linear-gradient(90deg, transparent, rgb(var(--archive-paper2) / 0.96) 18% 82%, transparent),
-    repeating-linear-gradient(
-      -7deg,
-      rgb(var(--archive-paper) / 0.96) 0 5px,
-      rgb(var(--archive-paper2) / 0.96) 5px 10px
-    );
-  box-shadow:
-    0 0 0 2px rgb(var(--archive-paper2) / 0.78),
-    0 0 12px rgb(var(--archive-paper) / 0.72);
-  transform: scaleX(0);
-  transform-origin: left center;
-  animation: language-erase 640ms cubic-bezier(0.45, 0, 0.16, 1) var(--language-motion-delay) both;
-}
-
-body.language-switching .archive-shell {
-  filter: none;
-}
-
-@keyframes language-erase {
-  0% {
-    opacity: 0;
-    transform: translateX(-0.35rem) scaleX(0);
-  }
-
-  18% {
-    opacity: 1;
-  }
-
-  72% {
-    opacity: 1;
-    transform: translateX(0.18rem) scaleX(1.04);
-  }
-
-  100% {
-    opacity: 0;
-    transform: translateX(0.45rem) scaleX(1.08);
-  }
+body.language-switching
+  .archive-shell
+  :where(
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    p,
+    span,
+    a,
+    li,
+    dt,
+    dd,
+    button,
+    label,
+    time,
+    strong,
+    em,
+    small,
+    figcaption,
+    blockquote
+  ) {
+  opacity: 0.2;
+  filter: blur(1px);
 }
 
 @media (max-width: 480px) {

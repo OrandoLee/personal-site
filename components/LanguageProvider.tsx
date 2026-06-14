@@ -32,10 +32,6 @@ type LanguageMotionItem = {
   top: number;
   width: number;
   height: number;
-  text: string;
-  color: string;
-  fontSize: string;
-  fontWeight: string;
   delay: number;
 };
 
@@ -192,7 +188,7 @@ function applyLanguageToTree(root: ParentNode, language: SiteLanguage) {
   }
 }
 
-function collectVisibleText(language: SiteLanguage) {
+function collectVisibleTextRects() {
   const shell = document.querySelector(".archive-shell");
 
   if (!shell) {
@@ -216,14 +212,11 @@ function collectVisibleText(language: SiteLanguage) {
 
   while (node && items.length < 42) {
     const parent = node.parentElement;
-    const source = textOriginals.get(node) ?? node.data;
-    const target = translateText(source, language).trim();
 
-    if (parent && target && isElementActuallyVisible(parent)) {
+    if (parent && node.data.trim() && isElementActuallyVisible(parent)) {
       const range = document.createRange();
       range.selectNodeContents(node);
       const rects = Array.from(range.getClientRects());
-      const style = window.getComputedStyle(parent);
 
       for (const rect of rects) {
         if (
@@ -240,10 +233,6 @@ function collectVisibleText(language: SiteLanguage) {
             top: Math.max(0, rect.top),
             width: Math.min(window.innerWidth - Math.max(0, rect.left), rect.width),
             height: rect.height,
-            text: target.slice(0, 34),
-            color: style.color,
-            fontSize: style.fontSize,
-            fontWeight: style.fontWeight,
             delay: Math.min(items.length * 18, 420)
           });
         }
@@ -309,23 +298,6 @@ function LanguageMotionOverlay({ items }: { items: LanguageMotionItem[] }) {
               } as CSSProperties
             }
           />
-          <span
-            className="language-motion-overlay__hand"
-            style={
-              {
-                left: item.left,
-                top: item.top,
-                width: Math.min(item.width + 32, window.innerWidth - item.left),
-                minHeight: item.height,
-                color: item.color,
-                fontSize: item.fontSize,
-                fontWeight: item.fontWeight,
-                "--language-motion-delay": `${item.delay + 420}ms`
-              } as CSSProperties
-            }
-          >
-            {item.text}
-          </span>
         </div>
       ))}
     </div>
@@ -418,7 +390,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      const items = collectVisibleText(nextLanguage);
+      const items = collectVisibleTextRects();
       setMotionItems(items);
       document.body.classList.add("language-switching");
 
@@ -430,7 +402,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       window.setTimeout(() => {
         document.body.classList.remove("language-switching");
         setMotionItems([]);
-      }, 1500);
+      }, 900);
     },
     []
   );

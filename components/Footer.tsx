@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { LogoWordmark } from "@/components/LogoWordmark";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { uiText } from "@/content/uiText";
@@ -34,7 +35,10 @@ export function Footer() {
               </Link>
             ))}
           </nav>
-          <ThemeSwitcher />
+          <div className="flex flex-wrap items-center gap-3 lg:justify-end">
+            <LanguageSwitcher />
+            <ThemeSwitcher />
+          </div>
         </div>
       </div>
     </footer>

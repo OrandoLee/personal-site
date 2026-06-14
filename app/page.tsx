@@ -49,7 +49,7 @@ export default async function HomePage() {
       <section className="mx-auto w-full max-w-6xl px-4 pb-16 pt-14 sm:px-6 lg:px-8 lg:pb-24 lg:pt-20">
         <div className="pb-12 lg:pb-16">
           <div className="mb-10 flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-            <p className="max-w-[268px] text-sm leading-7 text-archive-muted">
+            <p className="max-w-[420px] text-sm leading-7 text-archive-muted">
               {uiText.home.intro}
             </p>
             <div className="flex gap-3">

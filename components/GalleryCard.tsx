@@ -5,6 +5,7 @@ import { uiText } from "@/content/uiText";
 import type { GalleryItem } from "@/data/gallery";
 import { galleryCategoryLabels } from "@/data/gallery";
 import { formatDate } from "@/lib/format";
+import { CursorTiltCard } from "@/components/CursorTiltCard";
 import { WatermarkedImage } from "@/components/WatermarkedImage";
 
 type GalleryCardProps = {
@@ -48,11 +49,11 @@ export function GalleryCard({
   }, [item.type]);
 
   return (
-    <article
+    <CursorTiltCard
       id={item.id}
-      className="group overflow-hidden rounded-3xl border border-archive-line bg-archive-paper2 transition duration-300 hover:-translate-y-0.5 hover:shadow-archive"
+      className="group overflow-hidden rounded-3xl border border-archive-line bg-archive-paper2"
     >
-      <div className="relative aspect-[4/5] overflow-hidden border-b border-archive-line bg-archive-paper">
+      <div className="tilt-card-media relative aspect-[4/5] overflow-hidden border-b border-archive-line bg-archive-paper">
         {item.featured ? (
           <span className="absolute left-4 top-4 z-10 inline-flex items-center gap-1 rounded-full border border-archive-gold bg-archive-paper2/90 px-2.5 py-1 text-xs text-archive-gold shadow-sm">
             <span aria-hidden="true">★</span>
@@ -110,7 +111,7 @@ export function GalleryCard({
         )}
       </div>
 
-      <div className="grid gap-4 p-5">
+      <div className="tilt-card-content grid gap-4 p-5">
         <div className="flex items-center justify-between gap-3 text-sm text-archive-muted">
           <time>{formatDate(item.date)}</time>
           <span>{galleryCategoryLabels[item.category]}</span>
@@ -134,6 +135,6 @@ export function GalleryCard({
           ))}
         </div>
       </div>
-    </article>
+    </CursorTiltCard>
   );
 }

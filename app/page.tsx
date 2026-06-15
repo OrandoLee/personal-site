@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AnimatedDate } from "@/components/AnimatedDate";
+import { CursorTiltCard } from "@/components/CursorTiltCard";
 import { UpdateCard } from "@/components/UpdateCard";
 import { uiText } from "@/content/uiText";
 import { updateTypeMeta } from "@/data/updates";
@@ -122,8 +123,13 @@ export default async function HomePage() {
               <Link
                 key={update.id}
                 href={update.link ?? "/"}
-                className="group rounded-3xl border border-archive-line bg-archive-paper2 p-5 transition hover:-translate-y-0.5 hover:shadow-archive"
+                className="group block"
               >
+                <CursorTiltCard
+                  as="div"
+                  className="h-full rounded-3xl border border-archive-line bg-archive-paper2 p-5"
+                >
+                  <div className="tilt-card-content">
                 <div className="mb-8 flex flex-wrap gap-2">
                   {update.featured ? (
                     <span className="inline-flex rounded-full border border-archive-gold bg-archive-gold/10 px-2.5 py-1 text-xs text-archive-gold">
@@ -142,6 +148,8 @@ export default async function HomePage() {
                 <p className="mt-4 text-sm leading-7 text-archive-muted">
                   {update.description}
                 </p>
+                  </div>
+                </CursorTiltCard>
               </Link>
             );
           })}

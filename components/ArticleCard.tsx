@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CursorTiltCard } from "@/components/CursorTiltCard";
 import type { ArticleMeta } from "@/lib/articles";
 import { formatArticleCategory } from "@/lib/articles";
 import { formatDate } from "@/lib/format";
@@ -13,8 +14,8 @@ export function ArticleCard({ article }: ArticleCardProps) {
 
   return (
     <Link href={`/articles/${article.slug}`} className="group block">
-      <article className="grid gap-6 rounded-3xl border border-archive-line bg-archive-paper2 p-5 transition duration-300 hover:-translate-y-0.5 hover:shadow-archive sm:grid-cols-[180px_1fr] sm:p-6">
-        <div className="aspect-[4/3] overflow-hidden rounded-2xl border border-archive-line bg-archive-paper">
+      <CursorTiltCard className="grid gap-6 rounded-3xl border border-archive-line bg-archive-paper2 p-5 sm:grid-cols-[180px_1fr] sm:p-6">
+        <div className="tilt-card-media aspect-[4/3] overflow-hidden rounded-2xl border border-archive-line bg-archive-paper">
           {article.cover ? (
             <img
               src={article.cover}
@@ -28,7 +29,7 @@ export function ArticleCard({ article }: ArticleCardProps) {
           )}
         </div>
 
-        <div className="flex flex-col justify-between gap-5">
+        <div className="tilt-card-content flex flex-col justify-between gap-5">
           <div>
             <div className="mb-3 flex flex-wrap items-center gap-3 text-sm text-archive-muted">
               {article.featured ? (
@@ -62,7 +63,7 @@ export function ArticleCard({ article }: ArticleCardProps) {
             ))}
           </div>
         </div>
-      </article>
+      </CursorTiltCard>
     </Link>
   );
 }

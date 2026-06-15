@@ -175,11 +175,12 @@ export function Navbar() {
                   }
                 }}
                 data-logo-motion={item.motion}
+                data-active={labActive ? "true" : "false"}
                 className={cn(
-                  "nav-logo-button group relative flex h-10 shrink-0 items-center justify-center overflow-hidden rounded-full px-3 transition duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-archive-ink focus-visible:ring-offset-2 focus-visible:ring-offset-archive-paper sm:h-11 sm:px-4",
+                  "nav-logo-button group relative flex h-10 shrink-0 items-center justify-center overflow-hidden rounded-full px-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-archive-ink focus-visible:ring-offset-2 focus-visible:ring-offset-archive-paper sm:h-11 sm:px-4",
                   labActive
-                    ? "bg-archive-ink text-archive-paper2"
-                    : "text-archive-muted hover:bg-archive-paper2 hover:text-archive-ink"
+                    ? "text-archive-ink"
+                    : "text-archive-muted"
                 )}
               >
                 <span

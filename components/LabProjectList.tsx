@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AnimatedLabTime } from "@/components/AnimatedLabTime";
+import { CursorTiltCard } from "@/components/CursorTiltCard";
 import type { LabProject } from "@/data/lab";
 import { formatShanghaiDateTime } from "@/lib/date-format";
 
@@ -36,11 +37,11 @@ export function LabProjectList({ projects, emptyText }: LabProjectListProps) {
         const isExternal = project.openMode === "external" && project.externalUrl;
 
         return (
-          <article
+          <CursorTiltCard
             key={project.id}
-            className="group flex min-w-0 flex-col justify-between rounded-3xl border border-archive-line bg-archive-paper2 p-5 transition duration-200 hover:-translate-y-0.5 hover:border-archive-ink"
+            className="group flex min-w-0 flex-col justify-between rounded-3xl border border-archive-line bg-archive-paper2 p-5"
           >
-            <div>
+            <div className="tilt-card-content">
               <div className="mb-8 flex flex-wrap gap-2 text-xs text-archive-muted">
                 <span className="rounded-full border border-archive-line bg-archive-paper px-2.5 py-1">
                   类别：{project.category}
@@ -87,7 +88,7 @@ export function LabProjectList({ projects, emptyText }: LabProjectListProps) {
               ) : null}
             </div>
 
-            <div className="mt-8">
+            <div className="tilt-card-content mt-8">
               <Link
                 href={href}
                 target={isExternal ? "_blank" : undefined}
@@ -97,7 +98,7 @@ export function LabProjectList({ projects, emptyText }: LabProjectListProps) {
                 进入实验
               </Link>
             </div>
-          </article>
+          </CursorTiltCard>
         );
       })}
     </div>

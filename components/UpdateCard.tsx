@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CursorTiltCard } from "@/components/CursorTiltCard";
 import type { UpdateItem } from "@/data/updates";
 import { updateTypeMeta } from "@/data/updates";
 import { formatDate } from "@/lib/format";
@@ -11,9 +12,9 @@ type UpdateCardProps = {
 export function UpdateCard({ update, compact = false }: UpdateCardProps) {
   const meta = updateTypeMeta[update.type];
   const content = (
-    <article className="group h-full overflow-hidden rounded-3xl border border-archive-line bg-archive-paper2 transition duration-300 hover:-translate-y-0.5 hover:shadow-archive">
+    <CursorTiltCard className="group h-full overflow-hidden rounded-3xl border border-archive-line bg-archive-paper2">
       {update.cover ? (
-        <div className="aspect-[16/10] overflow-hidden border-b border-archive-line bg-archive-paper">
+        <div className="tilt-card-media aspect-[16/10] overflow-hidden border-b border-archive-line bg-archive-paper">
           <img
             src={update.cover}
             alt=""
@@ -21,7 +22,7 @@ export function UpdateCard({ update, compact = false }: UpdateCardProps) {
           />
         </div>
       ) : null}
-      <div className={compact ? "p-5" : "p-6 sm:p-7"}>
+      <div className={compact ? "tilt-card-content p-5" : "tilt-card-content p-6 sm:p-7"}>
         <div className="mb-5 flex flex-wrap items-center gap-3">
           {update.featured ? (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-archive-gold bg-archive-gold/10 px-2.5 py-1 text-xs text-archive-gold">
@@ -46,7 +47,7 @@ export function UpdateCard({ update, compact = false }: UpdateCardProps) {
           {update.description}
         </p>
       </div>
-    </article>
+    </CursorTiltCard>
   );
 
   if (!update.link) {

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArticleCard } from "@/components/ArticleCard";
+import { CursorTiltCard } from "@/components/CursorTiltCard";
 import { SectionTitleLogo } from "@/components/SectionTitleLogo";
 import { uiText } from "@/content/uiText";
 import {
@@ -105,17 +106,21 @@ export default async function ArticlesPage({ searchParams }: ArticlesPageProps) 
             <Link
               key={collection.slug}
               href={`/articles/collections/${collection.slug}`}
-              className="filter-result-enter group grid overflow-hidden rounded-3xl border border-archive-line bg-archive-paper2 transition hover:-translate-y-0.5 hover:border-archive-ink"
+              className="filter-result-enter group block"
               style={{ animationDelay: `${Math.min(index, 8) * 45}ms` }}
             >
+              <CursorTiltCard
+                as="div"
+                className="grid overflow-hidden rounded-3xl border border-archive-line bg-archive-paper2"
+              >
               {collection.cover ? (
                 <img
                   src={collection.cover}
                   alt={collection.title}
-                  className="h-48 w-full object-cover"
+                  className="tilt-card-media h-48 w-full object-cover"
                 />
               ) : null}
-              <div className="p-6">
+              <div className="tilt-card-content p-6">
                 <div className="flex flex-wrap items-center gap-2 text-xs text-archive-muted">
                   <span>合集</span>
                   <span>{collection.articles.length} 篇文档</span>
@@ -128,6 +133,7 @@ export default async function ArticlesPage({ searchParams }: ArticlesPageProps) 
                   {collection.summary}
                 </p>
               </div>
+              </CursorTiltCard>
             </Link>
           ))}
         </section>

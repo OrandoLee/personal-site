@@ -73,10 +73,8 @@ export default async function ArticlesPage({ searchParams }: ArticlesPageProps) 
         <Link
           href="/articles"
           className={cn(
-            "rounded-full border px-4 py-2 text-sm transition",
-            activeCategory === "all"
-              ? "border-archive-ink bg-archive-ink text-archive-paper2"
-              : "border-archive-line bg-archive-paper2 text-archive-muted hover:border-archive-ink hover:text-archive-ink"
+            "filter-pill",
+            activeCategory === "all" && "filter-pill--active"
           )}
         >
           {uiText.articles.allCategories}
@@ -86,10 +84,8 @@ export default async function ArticlesPage({ searchParams }: ArticlesPageProps) 
             key={category}
             href={`/articles?category=${encodeURIComponent(category)}`}
             className={cn(
-              "rounded-full border px-4 py-2 text-sm transition",
-              activeCategory === category
-                ? "border-archive-ink bg-archive-ink text-archive-paper2"
-                : "border-archive-line bg-archive-paper2 text-archive-muted hover:border-archive-ink hover:text-archive-ink"
+              "filter-pill",
+              activeCategory === category && "filter-pill--active"
             )}
           >
             {formatArticleCategory(category)}

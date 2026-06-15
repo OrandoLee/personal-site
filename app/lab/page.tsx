@@ -88,10 +88,8 @@ export default async function LabPage({ searchParams }: LabPageProps) {
               key={category.key}
               href={category.href}
               className={cn(
-                "rounded-full border px-4 py-2 text-sm transition",
-                activeCategory.key === category.key
-                  ? "border-archive-ink bg-archive-ink text-archive-paper2"
-                  : "border-archive-line bg-archive-paper2 text-archive-muted hover:border-archive-ink hover:text-archive-ink"
+                "filter-pill",
+                activeCategory.key === category.key && "filter-pill--active"
               )}
             >
               {category.label}

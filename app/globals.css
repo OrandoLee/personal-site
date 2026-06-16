@@ -72,6 +72,60 @@ body {
   letter-spacing: 0;
 }
 
+@media (hover: hover) and (pointer: fine) and (min-width: 768px) {
+  html.custom-cursor-ready,
+  html.custom-cursor-ready * {
+    cursor: none !important;
+  }
+
+  html.custom-cursor-ready
+    :where(input, textarea, [contenteditable="true"], [contenteditable="true"] *) {
+    cursor: text !important;
+  }
+}
+
+.custom-cursor {
+  --cursor-shadow-x: 0px;
+  --cursor-shadow-y: 0px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2147483647;
+  width: 28px;
+  height: 28px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate3d(-100px, -100px, 0);
+  transform-origin: 8px 5px;
+  transition:
+    opacity 140ms ease,
+    filter 180ms ease;
+  will-change: transform, opacity;
+}
+
+.custom-cursor[data-mode="pointer"] {
+  width: 32px;
+  height: 32px;
+  transform-origin: 11px 13px;
+}
+
+.custom-cursor__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter:
+    drop-shadow(var(--cursor-shadow-x) var(--cursor-shadow-y) 1px rgb(0 0 0 / 0.22))
+    drop-shadow(0 1px 1px rgb(0 0 0 / 0.28));
+  image-rendering: auto;
+  user-select: none;
+}
+
+@media (hover: none), (pointer: coarse), (max-width: 767px) {
+  .custom-cursor {
+    display: none;
+  }
+}
+
 ::selection {
   background: var(--selection-bg);
   color: var(--selection-text);

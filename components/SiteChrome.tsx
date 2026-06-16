@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
+import { CustomCursor } from "@/components/CustomCursor";
 import { Footer } from "@/components/Footer";
 import { LanguageProvider, useSiteLanguage } from "@/components/LanguageProvider";
 import { Navbar } from "@/components/Navbar";
@@ -17,6 +18,7 @@ function PublicSiteChrome({ children }: SiteChromeProps) {
 
   return (
     <div className="archive-shell">
+      <CustomCursor />
       {splashEnabled ? <SplashScreen /> : null}
       <Navbar />
       <PageTransition>{children}</PageTransition>

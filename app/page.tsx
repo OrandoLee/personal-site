@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AnimatedDate } from "@/components/AnimatedDate";
 import { CursorTiltCard } from "@/components/CursorTiltCard";
+import { ScrollRevealItem } from "@/components/ScrollRevealItem";
 import { UpdateCard } from "@/components/UpdateCard";
 import { uiText } from "@/content/uiText";
 import { updateTypeMeta } from "@/data/updates";
@@ -96,8 +97,10 @@ export default async function HomePage() {
 
         <div className="grid gap-5 lg:grid-cols-3">
           {currentUpdates.length > 0 ? (
-            currentUpdates.map((update) => (
-              <UpdateCard key={update.id} update={update} />
+            currentUpdates.map((update, index) => (
+              <ScrollRevealItem key={update.id} index={index} className="h-full">
+                <UpdateCard update={update} />
+              </ScrollRevealItem>
             ))
           ) : (
             <div className="rounded-3xl border border-archive-line bg-archive-paper2 p-7 text-archive-muted lg:col-span-3">
@@ -116,14 +119,14 @@ export default async function HomePage() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {latestUpdates.map((update) => {
+          {latestUpdates.map((update, index) => {
             const meta = updateTypeMeta[update.type];
 
             return (
-              <Link
-                key={update.id}
+              <ScrollRevealItem key={update.id} index={index} className="h-full">
+                <Link
                 href={update.link ?? "/"}
-                className="group block"
+                className="group block h-full"
               >
                 <CursorTiltCard
                   as="div"
@@ -150,7 +153,8 @@ export default async function HomePage() {
                 </p>
                   </div>
                 </CursorTiltCard>
-              </Link>
+                </Link>
+              </ScrollRevealItem>
             );
           })}
           {latestUpdates.length === 0 ? (

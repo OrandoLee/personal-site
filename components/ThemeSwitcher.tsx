@@ -14,7 +14,7 @@ export function ThemeSwitcher() {
 
   return (
     <div
-      className="inline-flex rounded-full border border-archive-line bg-archive-paper p-1"
+      className="theme-switcher inline-flex rounded-full border border-archive-line bg-archive-paper p-1"
       aria-label="Theme"
     >
       {options.map((option) => (

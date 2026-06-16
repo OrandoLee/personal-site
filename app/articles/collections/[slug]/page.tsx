@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArticleCard } from "@/components/ArticleCard";
+import { ScrollRevealItem } from "@/components/ScrollRevealItem";
 import { uiText } from "@/content/uiText";
 import { getArticleCollectionBySlug } from "@/lib/articles";
 
@@ -69,8 +70,10 @@ export default async function ArticleCollectionPage({
       </section>
 
       <section className="grid gap-5">
-        {collection.articles.map((article) => (
-          <ArticleCard key={article.slug} article={article} />
+        {collection.articles.map((article, index) => (
+          <ScrollRevealItem key={article.slug} index={index}>
+            <ArticleCard article={article} />
+          </ScrollRevealItem>
         ))}
       </section>
     </main>

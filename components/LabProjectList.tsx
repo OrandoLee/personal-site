@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AnimatedLabTime } from "@/components/AnimatedLabTime";
 import { CursorTiltCard } from "@/components/CursorTiltCard";
+import { ScrollRevealItem } from "@/components/ScrollRevealItem";
 import type { LabProject } from "@/data/lab";
 import { formatShanghaiDateTime } from "@/lib/date-format";
 
@@ -32,15 +33,13 @@ export function LabProjectList({ projects, emptyText }: LabProjectListProps) {
 
   return (
     <div className="grid gap-5 md:grid-cols-2">
-      {projects.map((project) => {
+      {projects.map((project, index) => {
         const href = projectHref(project);
         const isExternal = project.openMode === "external" && project.externalUrl;
 
         return (
-          <CursorTiltCard
-            key={project.id}
-            className="group flex min-w-0 flex-col justify-between rounded-3xl border border-archive-line bg-archive-paper2 p-5"
-          >
+          <ScrollRevealItem key={project.id} index={index} className="h-full">
+          <CursorTiltCard className="group flex h-full min-w-0 flex-col justify-between rounded-3xl border border-archive-line bg-archive-paper2 p-5">
             <div className="tilt-card-content">
               <div className="mb-8 flex flex-wrap gap-2 text-xs text-archive-muted">
                 <span className="rounded-full border border-archive-line bg-archive-paper px-2.5 py-1">
@@ -99,6 +98,7 @@ export function LabProjectList({ projects, emptyText }: LabProjectListProps) {
               </Link>
             </div>
           </CursorTiltCard>
+          </ScrollRevealItem>
         );
       })}
     </div>

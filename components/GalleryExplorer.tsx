@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { GalleryCard } from "@/components/GalleryCard";
+import { ScrollRevealItem } from "@/components/ScrollRevealItem";
 import { WatermarkedImage } from "@/components/WatermarkedImage";
 import { uiText } from "@/content/uiText";
 import type { GalleryCategory, GalleryItem } from "@/data/gallery";
@@ -355,17 +356,13 @@ export function GalleryExplorer({ items }: GalleryExplorerProps) {
 
       <section className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {filteredItems.map((item, index) => (
-          <div
-            key={item.id}
-            className="filter-result-enter"
-            style={{ animationDelay: `${Math.min(index, 8) * 45}ms` }}
-          >
+          <ScrollRevealItem key={item.id} index={index} className="h-full">
             <GalleryCard
               item={item}
               priority={index < 2}
               onPreview={openPreview}
             />
-          </div>
+          </ScrollRevealItem>
         ))}
       </section>
 

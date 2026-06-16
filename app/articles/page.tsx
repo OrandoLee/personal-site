@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArticleCard } from "@/components/ArticleCard";
 import { CursorTiltCard } from "@/components/CursorTiltCard";
+import { ScrollRevealItem } from "@/components/ScrollRevealItem";
 import { SectionTitleLogo } from "@/components/SectionTitleLogo";
 import { uiText } from "@/content/uiText";
 import {
@@ -99,15 +100,18 @@ export default async function ArticlesPage({ searchParams }: ArticlesPageProps) 
           className="mb-10 grid gap-5 md:grid-cols-2"
         >
           {collections.map((collection, index) => (
-            <Link
+            <ScrollRevealItem
               key={collection.slug}
+              index={index}
+              className="h-full"
+            >
+              <Link
               href={`/articles/collections/${collection.slug}`}
-              className="filter-result-enter group block"
-              style={{ animationDelay: `${Math.min(index, 8) * 45}ms` }}
+              className="group block h-full"
             >
               <CursorTiltCard
                 as="div"
-                className="grid overflow-hidden rounded-3xl border border-archive-line bg-archive-paper2"
+                className="grid h-full overflow-hidden rounded-3xl border border-archive-line bg-archive-paper2"
               >
               {collection.cover ? (
                 <img
@@ -130,20 +134,17 @@ export default async function ArticlesPage({ searchParams }: ArticlesPageProps) 
                 </p>
               </div>
               </CursorTiltCard>
-            </Link>
+              </Link>
+            </ScrollRevealItem>
           ))}
         </section>
       ) : null}
 
       <section key={`articles-${activeCategory}`} className="grid gap-5">
         {filteredArticles.map((article, index) => (
-          <div
-            key={article.slug}
-            className="filter-result-enter"
-            style={{ animationDelay: `${Math.min(index, 8) * 45}ms` }}
-          >
+          <ScrollRevealItem key={article.slug} index={index}>
             <ArticleCard article={article} />
-          </div>
+          </ScrollRevealItem>
         ))}
       </section>
     </main>

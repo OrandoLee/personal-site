@@ -13,6 +13,7 @@ const POINTER_TARGET_SELECTOR = [
   "summary",
   "select",
   "label",
+  "video[controls]",
   "[role='button']",
   "[data-custom-cursor='pointer']",
   "[tabindex]:not([tabindex='-1'])"

@@ -82,6 +82,24 @@ body {
     :where(input, textarea, [contenteditable="true"], [contenteditable="true"] *) {
     cursor: text !important;
   }
+
+  /* Native media controls live in the browser's shadow UI, outside the `*`
+     selector above. Override every Chromium/WebKit control layer so it cannot
+     draw a second system cursor over the site's custom pointer. */
+  html.custom-cursor-ready video,
+  html.custom-cursor-ready video::-webkit-media-controls,
+  html.custom-cursor-ready video::-webkit-media-controls-enclosure,
+  html.custom-cursor-ready video::-webkit-media-controls-panel,
+  html.custom-cursor-ready video::-webkit-media-controls-play-button,
+  html.custom-cursor-ready video::-webkit-media-controls-timeline,
+  html.custom-cursor-ready video::-webkit-media-controls-current-time-display,
+  html.custom-cursor-ready video::-webkit-media-controls-time-remaining-display,
+  html.custom-cursor-ready video::-webkit-media-controls-mute-button,
+  html.custom-cursor-ready video::-webkit-media-controls-volume-slider,
+  html.custom-cursor-ready video::-webkit-media-controls-fullscreen-button,
+  html.custom-cursor-ready video::-webkit-media-controls-toggle-closed-captions-button {
+    cursor: none !important;
+  }
 }
 
 .custom-cursor {

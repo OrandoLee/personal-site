@@ -10,7 +10,11 @@ type LoginFormValues = {
   password: string;
 };
 
-export function LoginForm() {
+type LoginFormProps = {
+  redirectTo?: string;
+};
+
+export function LoginForm({ redirectTo = "/dashboard" }: LoginFormProps) {
   const router = useRouter();
   const [message, setMessage] = useState("");
   const {
@@ -44,7 +48,7 @@ export function LoginForm() {
       return;
     }
 
-    router.push("/dashboard");
+    router.push(redirectTo);
     router.refresh();
   }
 

@@ -19,6 +19,7 @@ const navItems = [
   { href: "/dashboard/lab", label: "LAB 项目管理" },
   { href: "/dashboard/default-covers", label: "默认封面" },
   { href: "/dashboard/orask", label: uiText.admin.navOrask },
+  { href: "/login/ans", label: "Orask 回复" },
   { href: "/dashboard/settings", label: uiText.admin.navSettings }
 ];
 

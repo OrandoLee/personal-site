@@ -10,6 +10,14 @@ export type OraskMailInput = {
   sourcePage: string;
 };
 
+export type OraskReplyMailInput = {
+  senderEmail: string;
+  recipientEmail: string;
+  visitorName: string;
+  subject: string;
+  body: string;
+};
+
 function requiredEnv(name: string) {
   const value = process.env[name];
 
@@ -29,13 +37,12 @@ function escapeHtml(value: string) {
     .replaceAll("'", "&#039;");
 }
 
-export async function sendOraskEmail(input: OraskMailInput) {
+function createSmtpTransport() {
   const host = requiredEnv("SMTP_HOST");
   const port = Number(requiredEnv("SMTP_PORT"));
   const secure = requiredEnv("SMTP_SECURE") === "true";
   const user = requiredEnv("SMTP_USER");
   const pass = requiredEnv("SMTP_PASS");
-  const receiver = requiredEnv("ORASK_RECEIVER_EMAIL");
 
   const transporter = nodemailer.createTransport({
     host,
@@ -47,6 +54,12 @@ export async function sendOraskEmail(input: OraskMailInput) {
     }
   });
 
+  return { transporter, user };
+}
+
+export async function sendOraskEmail(input: OraskMailInput) {
+  const { transporter, user } = createSmtpTransport();
+  const receiver = requiredEnv("ORASK_RECEIVER_EMAIL");
   const subject = `[Orask] ${input.subject}`;
   const text = [
     `${uiText.mail.visitorName}: ${input.name}`,
@@ -76,6 +89,37 @@ export async function sendOraskEmail(input: OraskMailInput) {
     to: receiver,
     replyTo: input.email,
     subject,
+    text,
+    html
+  });
+}
+
+export async function sendOraskReplyEmail(input: OraskReplyMailInput) {
+  const { transporter, user } = createSmtpTransport();
+  const text = [
+    `${input.visitorName}，你好：`,
+    "",
+    input.body,
+    "",
+    "DELEE"
+  ].join("\n");
+  const html = `
+    <div style="font-family: Arial, sans-serif; line-height: 1.75; color: #17120f;">
+      <p>${escapeHtml(input.visitorName)}，你好：</p>
+      <div style="white-space: pre-wrap;">${escapeHtml(input.body)}</div>
+      <p style="margin-top: 28px;">DELEE</p>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: {
+      name: "DELEE",
+      address: input.senderEmail
+    },
+    sender: user === input.senderEmail ? undefined : user,
+    replyTo: input.senderEmail,
+    to: input.recipientEmail,
+    subject: input.subject,
     text,
     html
   });

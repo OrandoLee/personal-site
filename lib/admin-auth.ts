@@ -75,21 +75,25 @@ export function getAdminSession() {
   return verifyAdminSessionToken(cookies().get(adminCookieName)?.value);
 }
 
-export function requireAdminPage() {
+export function requireAdminPage(returnPath?: string) {
   const session = getAdminSession();
 
   if (!session) {
-    redirect("/login");
+    const loginUrl =
+      returnPath && returnPath.startsWith("/") && !returnPath.startsWith("//")
+        ? `/login?next=${encodeURIComponent(returnPath)}`
+        : "/login";
+    redirect(loginUrl);
   }
 
   return session;
 }
 
-export function requireGuestLoginPage() {
+export function requireGuestLoginPage(destination = "/dashboard") {
   const session = getAdminSession();
 
   if (session) {
-    redirect("/dashboard");
+    redirect(destination);
   }
 }
 

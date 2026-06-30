@@ -6,8 +6,22 @@ export const metadata = {
   title: uiText.admin.loginTitle
 };
 
-export default function LoginPage() {
-  requireGuestLoginPage();
+type LoginPageProps = {
+  searchParams?: {
+    next?: string | string[];
+  };
+};
+
+export default function LoginPage({ searchParams }: LoginPageProps) {
+  const requestedNext = Array.isArray(searchParams?.next)
+    ? searchParams?.next[0]
+    : searchParams?.next;
+  const redirectTo =
+    requestedNext?.startsWith("/") && !requestedNext.startsWith("//")
+      ? requestedNext
+      : "/dashboard";
+
+  requireGuestLoginPage(redirectTo);
 
   return (
     <main className="admin-selection min-h-screen bg-[#0f1115] px-4 py-10 text-zinc-100 sm:px-6">
@@ -33,7 +47,7 @@ export default function LoginPage() {
               {uiText.admin.loginHelp}
             </p>
           </div>
-          <LoginForm />
+          <LoginForm redirectTo={redirectTo} />
         </div>
       </section>
     </main>

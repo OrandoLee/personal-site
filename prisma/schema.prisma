@@ -124,17 +124,38 @@ model LabProject {
 }
 
 model OraskMessage {
-  id        String   @id @default(cuid())
+  id        String       @id @default(cuid())
   name      String
   email     String
   subject   String
   message   String
   source    String?
-  read      Boolean  @default(false)
-  createdAt DateTime @default(now())
+  read      Boolean      @default(false)
+  repliedAt DateTime?
+  createdAt DateTime     @default(now())
+  replies   OraskReply[]
 
   @@index([read, createdAt])
+  @@index([repliedAt, createdAt])
   @@index([email, createdAt])
+}
+
+model OraskReply {
+  id             String       @id @default(cuid())
+  messageId      String
+  senderEmail    String
+  recipientEmail String
+  subject        String
+  body           String
+  status         String       @default("pending")
+  error          String?
+  sentAt         DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  message        OraskMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId, createdAt])
+  @@index([status, createdAt])
 }
 
 model SiteSetting {

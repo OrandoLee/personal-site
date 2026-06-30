@@ -5,7 +5,8 @@ import type {
   DailyUpdate as DbDailyUpdate,
   GalleryItem as DbGalleryItem,
   LabProject as DbLabProject,
-  OraskMessage as DbOraskMessage
+  OraskMessage as DbOraskMessage,
+  OraskReply as DbOraskReply
 } from "@prisma/client";
 import type { UpdateItem, UpdateType } from "@/data/updates";
 import type {
@@ -246,7 +247,11 @@ export function serializeLabProject(row: DbLabProject): LabProject {
   };
 }
 
-export function serializeOraskMessage(row: DbOraskMessage) {
+type DbOraskMessageWithReplies = DbOraskMessage & {
+  replies?: DbOraskReply[];
+};
+
+export function serializeOraskMessage(row: DbOraskMessageWithReplies) {
   return {
     id: row.id,
     name: row.name,
@@ -255,6 +260,18 @@ export function serializeOraskMessage(row: DbOraskMessage) {
     message: row.message,
     source: row.source,
     read: row.read,
-    createdAt: row.createdAt.toISOString()
+    repliedAt: row.repliedAt?.toISOString() ?? null,
+    createdAt: row.createdAt.toISOString(),
+    replies: (row.replies ?? []).map((reply) => ({
+      id: reply.id,
+      senderEmail: reply.senderEmail,
+      recipientEmail: reply.recipientEmail,
+      subject: reply.subject,
+      body: reply.body,
+      status: reply.status as "pending" | "sent" | "failed",
+      error: reply.error,
+      sentAt: reply.sentAt?.toISOString() ?? null,
+      createdAt: reply.createdAt.toISOString()
+    }))
   };
 }

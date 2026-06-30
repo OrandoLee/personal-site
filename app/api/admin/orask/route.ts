@@ -25,7 +25,12 @@ export async function GET(request: Request) {
     : {};
   const rows = await prisma.oraskMessage.findMany({
     where,
-    orderBy: { createdAt: "desc" }
+    orderBy: { createdAt: "desc" },
+    include: {
+      replies: {
+        orderBy: { createdAt: "desc" }
+      }
+    }
   });
 
   return okJson(rows.map(serializeOraskMessage));

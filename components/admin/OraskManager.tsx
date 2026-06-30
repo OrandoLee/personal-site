@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import type { AdminOraskMessage, ApiResult } from "@/components/admin/types";
 import { uiText } from "@/content/uiText";
 import { cn } from "@/lib/classNames";
@@ -57,13 +58,21 @@ export function OraskManager() {
   return (
     <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
       <section className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
-        <div className="mb-5">
-          <h2 className="font-serif text-2xl font-semibold">
-            {uiText.admin.oraskTitle}
-          </h2>
-          <p className="mt-1 text-sm text-zinc-500">
-            {uiText.admin.oraskDescription}
-          </p>
+        <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="font-serif text-2xl font-semibold">
+              {uiText.admin.oraskTitle}
+            </h2>
+            <p className="mt-1 text-sm text-zinc-500">
+              {uiText.admin.oraskDescription}
+            </p>
+          </div>
+          <Link
+            href="/login/ans"
+            className="rounded-lg bg-white px-4 py-2 text-sm text-zinc-950"
+          >
+            打开回复工作台
+          </Link>
         </div>
 
         <form

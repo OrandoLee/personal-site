@@ -102,5 +102,19 @@ export type AdminOraskMessage = {
   message: string;
   source: string | null;
   read: boolean;
+  repliedAt: string | null;
+  createdAt: string;
+  replies: AdminOraskReply[];
+};
+
+export type AdminOraskReply = {
+  id: string;
+  senderEmail: string;
+  recipientEmail: string;
+  subject: string;
+  body: string;
+  status: "pending" | "sent" | "failed";
+  error: string | null;
+  sentAt: string | null;
   createdAt: string;
 };

@@ -127,6 +127,24 @@ export const oraskPatchSchema = z.object({
   read: z.boolean()
 });
 
+export const oraskReplySettingsSchema = z.object({
+  senderEmail: z.string().trim().email("请输入有效的发件邮箱地址。")
+});
+
+export const oraskReplySchema = z.object({
+  subject: z
+    .string()
+    .trim()
+    .min(1, "请输入邮件主题。")
+    .max(200, "邮件主题不能超过 200 个字符。")
+    .refine((value) => !/[\r\n]/.test(value), "邮件主题不能包含换行。"),
+  body: z
+    .string()
+    .trim()
+    .min(1, "请输入回复内容。")
+    .max(10000, "回复内容不能超过 10000 个字符。")
+});
+
 export type DailyUpdateInput = z.infer<typeof dailyUpdateSchema>;
 export type ArticleInput = z.infer<typeof articleSchema>;
 export type ArticleCollectionInput = z.infer<typeof articleCollectionSchema>;

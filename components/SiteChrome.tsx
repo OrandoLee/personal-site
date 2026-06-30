@@ -30,7 +30,7 @@ function PublicSiteChrome({ children }: SiteChromeProps) {
 export function SiteChrome({ children }: SiteChromeProps) {
   const pathname = usePathname();
   const isCreatorAdmin =
-    pathname === "/login" || pathname.startsWith("/dashboard");
+    pathname.startsWith("/login") || pathname.startsWith("/dashboard");
 
   if (isCreatorAdmin) {
     return <>{children}</>;

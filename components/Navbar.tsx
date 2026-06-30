@@ -133,10 +133,7 @@ export function Navbar() {
     >
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-5 px-4 py-5 sm:px-6 lg:px-8">
         <Link href="/" className="block shrink-0" aria-label={uiText.site.homeAria}>
-          <LogoWordmark
-            glitch
-            className="h-7 w-24 object-contain object-left sm:h-8 sm:w-28"
-          />
+          <LogoWordmark className="h-7 w-24 object-contain object-left sm:h-8 sm:w-28" />
         </Link>
 
         <nav className="flex min-w-0 items-center gap-2 overflow-x-auto">
